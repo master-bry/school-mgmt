@@ -38,7 +38,7 @@ class HeadOfSchoolController extends Controller
         $agg = DB::selectOne("
             SELECT
               (SELECT count(*) FROM users WHERE school_id = ? AND role = 'student')                                                              AS total_students,
-              (SELECT count(*) FROM users WHERE school_id = ? AND role = 'student' AND is_active)                                              AS active_students,
+              (SELECT count(*) FROM users WHERE school_id = ? AND role = 'student' AND is_active = 1)                                          AS active_students,
               (SELECT count(*) FROM users WHERE school_id = ? AND role = 'teacher')                                                            AS total_teachers,
               (SELECT count(*) FROM users WHERE school_id = ? AND role = 'academician')                                                        AS academicians,
               (SELECT count(*) FROM users WHERE school_id = ? AND role IN ('cashier','secretary'))                                             AS support_staff,

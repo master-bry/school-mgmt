@@ -53,7 +53,7 @@ class AdminController extends Controller
 
         // Detailed RBAC matrix
         $rolesBreakdown = User::where('school_id', $schoolId)
-            ->selectRaw("role, count(*) as count, sum(case when is_active then 1 else 0 end) as active")
+            ->selectRaw("role, count(*) as count, sum(case when is_active = 1 then 1 else 0 end) as active")
             ->groupBy('role')
             ->get();
 
@@ -106,7 +106,7 @@ class AdminController extends Controller
         $schoolId = $this->schoolUsers()->first()->school_id;
         $users = User::where('school_id', $schoolId)->get(['id', 'name', 'email', 'role', 'is_active', 'created_at']);
         $roles = User::where('school_id', $schoolId)
-            ->selectRaw("role, count(*) as count, sum(case when is_active then 1 else 0 end) as active")
+            ->selectRaw("role, count(*) as count, sum(case when is_active = 1 then 1 else 0 end) as active")
             ->groupBy('role')->get();
         return response()->json(['users' => $users, 'roles' => $roles]);
     }

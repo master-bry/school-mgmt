@@ -27,8 +27,8 @@ Route::get('/announcements/public', [AnnouncementController::class, 'publicIndex
 Route::get('/schools', [AuthController::class, 'schools']);
 
 // Auth routes
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:login');
+Route::post('/login', [AuthController::class, 'login'])->name('login')->middleware('throttle:login');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

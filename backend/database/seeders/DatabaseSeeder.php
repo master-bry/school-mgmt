@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $password = 'Secret@2026';
-        $tzDomain = '@shulesmart.tz';
+        $tzDomain = '@ems.com';
 
         // ────────────────────────────────────────────────────
         // 1. SUPER ADMIN (SaaS Vendor) - Cross-tenant management
