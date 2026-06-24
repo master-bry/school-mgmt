@@ -165,7 +165,7 @@ const Dashboard = () => {
         <div className="space-y-6">
           <StatHeader icon={RoleIcon} title={roleTitle} subtitle="System Administration & IT Management" />
           <StatCards items={[
-            { label: 'Total Students', value: stats.total_users, icon: Users, gradient: 'from-primary-600 to-primary-700' },
+            { label: 'Total Students', value: stats.total_users || 0, icon: Users, gradient: 'from-primary-600 to-primary-700' },
             { label: 'Teachers', value: stats.user_counts?.teachers || 0, icon: GraduationCap, gradient: 'from-emerald-600 to-emerald-700' },
             { label: 'Classes', value: stats.total_classes || 0, icon: BookOpen, gradient: 'from-violet-600 to-violet-700' },
             { label: 'Subjects', value: stats.total_subjects || 0, icon: TrendingUp, gradient: 'from-orange-600 to-orange-700' },
@@ -562,10 +562,10 @@ const Dashboard = () => {
               </h2>
               <div className="grid grid-cols-4 gap-3 text-center">
                 {[
-                  { label: '30 Days', value: stats.aging_debt.days_30, color: 'text-amber-600' },
-                  { label: '60 Days', value: stats.aging_debt.days_60, color: 'text-orange-600' },
-                  { label: '90 Days', value: stats.aging_debt.days_90, color: 'text-red-600' },
-                  { label: '120+ Days', value: stats.aging_debt.days_120, color: 'text-rose-700' },
+                  { label: '30 Days', value: stats.aging_debt?.days_30, color: 'text-amber-600' },
+                  { label: '60 Days', value: stats.aging_debt?.days_60, color: 'text-orange-600' },
+                  { label: '90 Days', value: stats.aging_debt?.days_90, color: 'text-red-600' },
+                  { label: '120+ Days', value: stats.aging_debt?.days_120, color: 'text-rose-700' },
                 ].map(d => (
                   <div key={d.label} className="p-3 bg-red-50 rounded-lg">
                     <p className={`text-2xl font-bold ${d.color}`}>${d.value || 0}</p>

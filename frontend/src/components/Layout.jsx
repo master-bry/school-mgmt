@@ -7,7 +7,7 @@ import {
   Clock, BarChart3, ChevronRight, ClipboardCheck, BookMarked,
   FileText, CreditCard, TrendingUp, Award, ShieldCheck,
   FileSignature, Megaphone, Newspaper, MapPin, FolderOpen,
-  PieChart, Wallet, BookCheck, Monitor
+  PieChart, Wallet, BookCheck, Monitor, Building2
 } from 'lucide-react'
 
 const roleLabels = {
