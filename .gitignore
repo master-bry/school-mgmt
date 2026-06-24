@@ -1,0 +1,16 @@
+.env
+/backend/vendor/
+/frontend/node_modules/
+/backend/storage/framework/cache/*
+/backend/storage/framework/sessions/*
+/backend/storage/framework/views/*
+/backend/storage/logs/*
+/backend/storage/app/public/*
+/backend/bootstrap/cache/*
+*.log
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+students_sample_50_tz.xlsx
+.git-corrupted/

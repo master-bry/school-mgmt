@@ -1,0 +1,8 @@
+/bootstrap/cache/*
+/storage/logs/*
+/storage/app/public/books/*
+/storage/app/public/resources/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+.env
