@@ -33,6 +33,7 @@ class NotificationController extends Controller
                         'title' => 'Pending Fee Approvals',
                         'message' => "You have {$pendingFees} fee approval(s) waiting.",
                         'type' => 'fee_approval',
+                        'action' => '/dashboard/head-of-school/fees',
                         'created_at' => now(),
                         'read_at' => null,
                     ];
@@ -47,6 +48,7 @@ class NotificationController extends Controller
                         'title' => 'Pending Salary/Bonus Approvals',
                         'message' => "You have {$pendingSalaries} salary/bonus approval(s) waiting.",
                         'type' => 'salary_approval',
+                        'action' => '/dashboard/head-of-school/approvals',
                         'created_at' => now(),
                         'read_at' => null,
                     ];
@@ -60,6 +62,7 @@ class NotificationController extends Controller
                         'title' => 'Pending Grade Submissions',
                         'message' => "You have {$pendingSubmissions} grade submission(s) to review.",
                         'type' => 'grade_submission',
+                        'action' => '/dashboard/head-of-school/approvals',
                         'created_at' => now(),
                         'read_at' => null,
                     ];
@@ -75,6 +78,7 @@ class NotificationController extends Controller
                         'title' => 'Pending Fee Reviews',
                         'message' => "You have {$pendingFees} fee(s) to review.",
                         'type' => 'fee_review',
+                        'action' => '/dashboard/assistant-head/fees',
                         'created_at' => now(),
                         'read_at' => null,
                     ];
@@ -90,6 +94,7 @@ class NotificationController extends Controller
                         'title' => 'Pending Fee Invoices',
                         'message' => "{$pendingFees} fee invoice(s) pending cashier review.",
                         'type' => 'fee_invoice',
+                        'action' => '/dashboard/cashier/fees',
                         'created_at' => now(),
                         'read_at' => null,
                     ];
@@ -106,6 +111,7 @@ class NotificationController extends Controller
                         'title' => 'Pending Grade Submissions',
                         'message' => "You have {$pendingGrades} grade submission(s) awaiting approval.",
                         'type' => 'grade_submission',
+                        'action' => '/dashboard/grades',
                         'created_at' => now(),
                         'read_at' => null,
                     ];
@@ -117,5 +123,20 @@ class NotificationController extends Controller
             'data' => $notifications,
             'total' => count($notifications),
         ]);
+    }
+
+    public function markRead($id)
+    {
+        $user = auth()->user();
+
+        if ($user->role === 'parent') {
+            $notification = ParentNotification::where('parent_id', $user->id)->find($id);
+            if ($notification) {
+                $notification->update(['read_at' => now()]);
+                return response()->json(['message' => 'Notification marked as read']);
+            }
+        }
+
+        return response()->json(['message' => 'Dismissed'], 200);
     }
 }

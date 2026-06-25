@@ -299,7 +299,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ────── Notifications (all roles) ──────
     Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
-        Route::post('/{id}/read', [ParentController::class, 'markNotificationRead']);
+        Route::post('/{id}/read', [NotificationController::class, 'markRead']);
     });
 
     // ────── Assignments (Student Assignment Locker) ──────

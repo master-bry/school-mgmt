@@ -55,7 +55,15 @@ const Layout = ({ children }) => {
     try {
       await axios.post(`/api/notifications/${id}/read`)
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
-    } catch {}
+    } catch {
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
+    }
+  }
+
+  const handleNotifClick = (n) => {
+    if (!n.read_at) markRead(n.id)
+    setNotifOpen(false)
+    if (n.action) navigate(n.action)
   }
 
   const handleLogout = () => {
@@ -278,7 +286,7 @@ const Layout = ({ children }) => {
                         notifications.slice(0, 10).map(n => (
                           <div key={n.id}
                             className={`px-4 py-3 border-b border-secondary-50 hover:bg-secondary-50 transition-colors cursor-pointer ${!n.read_at ? 'bg-primary-50/40' : ''}`}
-                            onClick={() => { if (!n.read_at) markRead(n.id) }}>
+                            onClick={() => handleNotifClick(n)}>
                             <div className="flex items-start justify-between">
                               <p className="text-sm font-medium text-secondary-900">{n.title}</p>
                               {!n.read_at && <span className="w-2 h-2 bg-primary-500 rounded-full flex-shrink-0 mt-1" />}
