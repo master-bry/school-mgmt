@@ -927,69 +927,200 @@ const Dashboard = () => {
       {/* ───── Student Dashboard ───── */}
       {user.role === 'student' && (
         <div className="space-y-6">
-          <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.student_subtitle')} />
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center space-x-2 text-sm text-secondary-500 mb-1">
+                <GraduationCap className="w-4 h-4" />
+                <span>Student Portal</span>
+              </div>
+              <h1 className="text-2xl font-bold text-secondary-900">
+                Welcome back, {user.name?.split(' ')[0]}
+              </h1>
+              <p className="text-secondary-500 mt-0.5">{stats.student?.class?.name || 'Dashboard'}</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button variant="secondary" onClick={() => navigate('/dashboard/timetable')}>
+                <Calendar className="w-4 h-4 mr-2" /> Timetable
+              </Button>
+              <Button onClick={() => navigate('/dashboard/grades')}>
+                <TrendingUp className="w-4 h-4 mr-2" /> My Grades
+              </Button>
+            </div>
+          </div>
+
           <StatCards items={[
-            { label: 'Attendance', value: (() => { const a = stats.attendance_stats || {}; const t = a.present + a.late + a.absent; return t > 0 ? `${Math.round((a.present / t) * 100)}%` : 'N/A' })(), icon: CheckCircle, gradient: 'from-primary-600 to-primary-700' },
-            { label: 'Present Days', value: (stats.attendance_stats || {}).present || 0, icon: Calendar, gradient: 'from-emerald-600 to-emerald-700' },
-            { label: 'Average Grade', value: stats.average_grade ? `${stats.average_grade}%` : 'N/A', icon: TrendingUp, gradient: 'from-violet-600 to-violet-700' },
+            { label: 'Attendance Rate', value: (() => { const a = stats.attendance_stats || {}; const t = a.present + a.late + a.absent; return t > 0 ? `${Math.round((a.present / t) * 100)}%` : 'N/A' })(), icon: CheckCircle, gradient: 'from-primary-600 to-primary-700' },
+            { label: 'Present Days', value: (stats.attendance_stats || {}).present || 0, icon: CalendarCheck, gradient: 'from-emerald-600 to-emerald-700' },
+            { label: 'Average Grade', value: stats.average_grade ? `${stats.average_grade}%` : 'N/A', icon: Award, gradient: 'from-violet-600 to-violet-700' },
             { label: 'Fee Status', value: `$${stats.fee_summary?.paid || 0} / $${stats.fee_summary?.total || 0}`, icon: DollarSign, gradient: 'from-orange-600 to-orange-700' },
           ]} />
 
-          {stats.today_timetable?.length > 0 && (
-            <Card>
-              <h2 className="text-base font-semibold mb-4 flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-primary-600" /><span>Today's Schedule</span>
-              </h2>
-              <table className="w-full text-sm">
-                <thead><tr className="border-b border-secondary-200"><th className="text-left py-2 px-2">Time</th><th className="text-left py-2 px-2">Subject</th><th className="text-left py-2 px-2">Teacher</th><th className="text-left py-2 px-2">Room</th></tr></thead>
-                <tbody>{stats.today_timetable.map((tt, i) => (
-                  <tr key={i} className="border-b border-secondary-100"><td className="py-2 px-2">{tt.start_time?.substring(0,5)}-{tt.end_time?.substring(0,5)}</td><td className="py-2 px-2">{tt.subject?.name}</td><td className="py-2 px-2">{tt.teacher?.name}</td><td className="py-2 px-2">{tt.room_number}</td></tr>
-                ))}</tbody>
-              </table>
-            </Card>
-          )}
-
-          {stats.grade_trends?.length > 0 && (
-            <Card>
-              <h2 className="text-base font-semibold mb-4">Grade Trend</h2>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={stats.grade_trends}>
-                  <XAxis dataKey="exam_name" tick={{ fontSize: 10 }} />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="percentage" stroke="#4f46e5" strokeWidth={2} dot={{ r: 4 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </Card>
-          )}
-
-          {(stats.recent_blogs?.length > 0 || stats.upcoming_events?.length > 0 || stats.recent_resources?.length > 0) && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {stats.recent_blogs?.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-6">
+              {stats.today_timetable?.length > 0 && (
                 <Card>
-                  <h3 className="font-semibold mb-3 flex items-center space-x-2"><Newspaper className="w-4 h-4 text-indigo-500" /><span>Latest Blog Posts</span></h3>
-                  <div className="space-y-2">{stats.recent_blogs.slice(0, 3).map((b, i) => (
-                    <div key={i} className="text-sm"><p className="font-medium truncate">{b.title}</p><p className="text-xs text-secondary-400">{new Date(b.created_at).toLocaleDateString()}</p></div>
-                  ))}</div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base font-semibold flex items-center space-x-2">
+                      <Clock className="w-4 h-4 text-primary-600" /><span>Today's Schedule</span>
+                    </h2>
+                    <span className="text-xs text-secondary-400 bg-secondary-100 px-2 py-1 rounded-full capitalize">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</span>
+                  </div>
+                  <div className="space-y-2">
+                    {stats.today_timetable.map((tt, i) => (
+                      <div key={i} className="flex items-center p-3 rounded-lg bg-secondary-50 hover:bg-secondary-100 transition-colors">
+                        <div className="w-16 text-center flex-shrink-0">
+                          <p className="text-xs font-semibold text-primary-600">{tt.start_time?.substring(0,5)}</p>
+                          <p className="text-xs text-secondary-400">{tt.end_time?.substring(0,5)}</p>
+                        </div>
+                        <div className="w-0.5 h-10 bg-primary-200 mx-3 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-secondary-900 truncate">{tt.subject?.name || 'Lesson'}</p>
+                          <p className="text-xs text-secondary-500 truncate">{tt.teacher?.name}{tt.room_number ? ` · ${tt.room_number}` : ''}</p>
+                        </div>
+                        {tt.timetable_type && (
+                          <span className="text-xs capitalize px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 flex-shrink-0">{tt.timetable_type}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </Card>
               )}
-              {stats.upcoming_events?.length > 0 && (
+
+              {stats.upcoming_exams?.length > 0 && (
                 <Card>
-                  <h3 className="font-semibold mb-3 flex items-center space-x-2"><Calendar className="w-4 h-4 text-amber-500" /><span>Upcoming Events</span></h3>
-                  <div className="space-y-2">{stats.upcoming_events.slice(0, 3).map((e, i) => (
-                    <div key={i} className="text-sm"><p className="font-medium truncate">{e.title}</p><p className="text-xs text-secondary-400">{new Date(e.event_date).toLocaleDateString()}</p></div>
-                  ))}</div>
+                  <h2 className="text-base font-semibold mb-4 flex items-center space-x-2">
+                    <BookOpen className="w-4 h-4 text-amber-600" /><span>Upcoming Exams</span>
+                  </h2>
+                  <div className="space-y-2">
+                    {stats.upcoming_exams.map((exam, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-amber-50/50 border border-amber-100">
+                        <div>
+                          <p className="text-sm font-medium text-secondary-900">{exam.subject?.name || 'Exam'}</p>
+                          <p className="text-xs text-secondary-500">{exam.exam_date ? new Date(exam.exam_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'TBA'}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-amber-700">{exam.exam_date ? Math.ceil((new Date(exam.exam_date) - new Date()) / (1000 * 60 * 60 * 24)) : '-'}d</p>
+                          <p className="text-xs text-amber-500">remaining</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
+            </div>
+
+            <div className="space-y-6">
+              {stats.recent_grades?.length > 0 && (
+                <Card>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base font-semibold flex items-center space-x-2">
+                      <TrendingUp className="w-4 h-4 text-violet-600" /><span>Recent Grades</span>
+                    </h2>
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${GRADE_COLORS[stats.average_grade >= 80 ? 'A' : stats.average_grade >= 70 ? 'B' : stats.average_grade >= 60 ? 'C' : stats.average_grade >= 50 ? 'D' : 'F'] || 'bg-secondary-100 text-secondary-700'} text-white`}>
+                      {stats.average_grade ? `${stats.average_grade}%` : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {stats.recent_grades.map((g, i) => {
+                      const pct = g.percentage || 0
+                      const grade = pct >= 80 ? 'A' : pct >= 70 ? 'B' : pct >= 60 ? 'C' : pct >= 50 ? 'D' : 'F'
+                      return (
+                        <div key={i} className="flex items-center justify-between p-2.5 rounded-lg hover:bg-secondary-50 transition-colors">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-secondary-900 truncate">{g.exam?.subject?.name || g.exam?.name || 'Subject'}</p>
+                            <p className="text-xs text-secondary-400">{g.exam?.class?.name || ''}</p>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <div className="w-24 bg-secondary-100 rounded-full h-2">
+                              <div className={`h-2 rounded-full transition-all ${GRADE_COLORS[grade] || 'bg-secondary-400'}`} style={{ width: `${pct}%` }} />
+                            </div>
+                            <span className={`w-8 h-7 rounded-md flex items-center justify-center text-xs font-bold text-white ${GRADE_COLORS[grade] || 'bg-secondary-400'}`}>{grade}</span>
+                          </div>
+                        </div>
+                      )}
+                    )}
+                  </div>
+                </Card>
+              )}
+
+              {stats.grade_trends?.length > 0 && (
+                <Card>
+                  <h2 className="text-base font-semibold mb-4 flex items-center space-x-2">
+                    <BarChart3 className="w-4 h-4 text-emerald-600" /><span>Subject Performance</span>
+                  </h2>
+                  <div className="space-y-3">
+                    {Object.values(stats.grade_trends).slice(0, 5).map((item, i) => (
+                      <div key={i}>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-secondary-700 font-medium truncate">{item.subject}</span>
+                          <span className="text-secondary-600 font-medium">{item.average}%</span>
+                        </div>
+                        <div className="w-full bg-secondary-100 rounded-full h-2.5">
+                          <div className={`h-2.5 rounded-full transition-all ${item.average >= 70 ? 'bg-emerald-500' : item.average >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                            style={{ width: `${Math.min(item.average, 100)}%` }} />
+                        </div>
+                        {item.trend && (
+                          <p className={`text-xs mt-0.5 ${item.trend === 'improving' ? 'text-emerald-600' : 'text-red-500'}`}>
+                            {item.trend === 'improving' ? '↑ Improving' : '↓ Needs attention'}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
+            </div>
+          </div>
+
+          {(stats.bulletins?.length > 0 || stats.recent_resources?.length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {stats.bulletins?.length > 0 && (
+                <Card>
+                  <h3 className="font-semibold mb-3 flex items-center space-x-2">
+                    <Megaphone className="w-4 h-4 text-indigo-500" /><span>Announcements</span>
+                  </h3>
+                  <div className="space-y-3">
+                    {stats.bulletins.slice(0, 3).map((b, i) => (
+                      <div key={i} className="border-l-2 border-primary-300 pl-3">
+                        <p className="text-sm font-medium text-secondary-900 truncate">{b.title}</p>
+                        <p className="text-xs text-secondary-500 mt-0.5 line-clamp-1">{b.content}</p>
+                        <p className="text-xs text-secondary-400 mt-0.5">{new Date(b.created_at).toLocaleDateString()}</p>
+                      </div>
+                    ))}
+                  </div>
                 </Card>
               )}
               {stats.recent_resources?.length > 0 && (
                 <Card>
-                  <h3 className="font-semibold mb-3 flex items-center space-x-2"><FolderOpen className="w-4 h-4 text-emerald-500" /><span>Recent Resources</span></h3>
-                  <div className="space-y-2">{stats.recent_resources.slice(0, 3).map((r, i) => (
-                    <div key={i} className="text-sm"><p className="font-medium truncate">{r.title}</p><p className="text-xs text-secondary-400">{r.resource_type || r.category}</p></div>
-                  ))}</div>
+                  <h3 className="font-semibold mb-3 flex items-center space-x-2">
+                    <FolderOpen className="w-4 h-4 text-emerald-500" /><span>Resources</span>
+                  </h3>
+                  <div className="space-y-2">
+                    {stats.recent_resources.slice(0, 4).map((r, i) => (
+                      <div key={i} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-secondary-50 transition-colors">
+                        <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <FileText className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-secondary-900 truncate">{r.title}</p>
+                          <p className="text-xs text-secondary-400">{r.resource_type || r.category || 'Resource'}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </Card>
               )}
             </div>
+          )}
+
+          {!stats.today_timetable?.length && !stats.recent_grades?.length && !stats.bulletins?.length && (
+            <Card>
+              <div className="py-12 text-center">
+                <GraduationCap className="w-16 h-16 mx-auto mb-4 text-secondary-300" />
+                <p className="text-lg font-medium text-secondary-900">Welcome to your dashboard!</p>
+                <p className="text-sm text-secondary-500 mt-1">Your data will appear here as your teachers update records.</p>
+              </div>
+            </Card>
           )}
         </div>
       )}
@@ -997,36 +1128,122 @@ const Dashboard = () => {
       {/* ───── Parent Dashboard ───── */}
       {user.role === 'parent' && (
         <div className="space-y-6">
-          <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.parent_subtitle')} />
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center space-x-2 text-sm text-secondary-500 mb-1">
+                <Users className="w-4 h-4" />
+                <span>Parent Portal</span>
+              </div>
+              <h1 className="text-2xl font-bold text-secondary-900">Welcome, {user.name?.split(' ')[0] || ''}</h1>
+              <p className="text-secondary-500 mt-0.5">Monitor your children's academic progress</p>
+            </div>
+            <Button onClick={() => navigate('/dashboard/children')}>
+              <Users className="w-4 h-4 mr-2" /> My Children
+            </Button>
+          </div>
+
           <StatCards items={[
             { label: 'Children', value: stats.children?.length || 0, icon: Users, gradient: 'from-primary-600 to-primary-700' },
-            { label: 'Attendance', value: 'Monitor', icon: Calendar, gradient: 'from-emerald-600 to-emerald-700' },
-            { label: 'Grades', value: 'Track', icon: BookOpen, gradient: 'from-violet-600 to-violet-700' },
-            { label: 'Fees', value: 'Status', icon: DollarSign, gradient: 'from-orange-600 to-orange-700' },
+            { label: 'Total Fees', value: `$${(stats.children || []).reduce((s, c) => s + (c.total_fees || 0), 0)}`, icon: DollarSign, gradient: 'from-orange-600 to-orange-700' },
+            { label: 'Pending Fees', value: `$${(stats.children || []).reduce((s, c) => s + (c.pending_fees || 0), 0)}`, icon: CreditCard, gradient: 'from-amber-600 to-amber-700' },
+            { label: 'Events', value: stats.upcoming_events?.length || 0, icon: Calendar, gradient: 'from-violet-600 to-violet-700' },
           ]} />
 
           {stats.children?.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {stats.children.map(child => (
-                <Card key={child.user?.id || child.id}>
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                      {child.user?.name?.charAt(0)?.toUpperCase() || '?'}
+            <div>
+              <h2 className="text-base font-semibold text-secondary-900 mb-4 flex items-center space-x-2">
+                <Users className="w-4 h-4 text-primary-600" /><span>My Children</span>
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {stats.children.map(child => (
+                  <Card key={child.user?.id || child.id} className="hover:shadow-md transition-shadow">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-11 h-11 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-sm">
+                        <span className="text-white font-bold text-sm">{child.user?.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-secondary-900 truncate">{child.user?.name || child.name}</p>
+                        <p className="text-xs text-secondary-500 truncate">{child.class?.name || child.user?.class?.name || 'No class'}</p>
+                      </div>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                        child.attendance_stats?.today_status === 'present' ? 'bg-emerald-100 text-emerald-700' :
+                        child.attendance_stats?.today_status === 'late' ? 'bg-amber-100 text-amber-700' :
+                        child.attendance_stats?.today_status === 'absent' ? 'bg-red-100 text-red-700' :
+                        'bg-secondary-100 text-secondary-500'
+                      }`}>
+                        {child.attendance_stats?.today_status === 'present' ? 'Present' :
+                         child.attendance_stats?.today_status === 'late' ? 'Late' :
+                         child.attendance_stats?.today_status === 'absent' ? 'Absent' :
+                         child.attendance_stats?.today_status === 'excused' ? 'Excused' :
+                         child.attendance_stats?.today_status === 'permission' ? 'Permission' : 'Not Marked'}
+                      </span>
                     </div>
-                    <div><p className="font-semibold text-secondary-900">{child.user?.name}</p><p className="text-xs text-secondary-500">{child.class?.name}</p></div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                    <div className="p-2 bg-primary-50 rounded"><p className="font-bold text-primary-700">{child.average_grade}%</p><p className="text-primary-500">Avg Grade</p></div>
-                    <div className="p-2 bg-emerald-50 rounded"><p className="font-bold text-emerald-700">{child.attendance_stats?.present || 0}</p><p className="text-emerald-500">Present</p></div>
-                    <div className="p-2 bg-amber-50 rounded"><p className="font-bold text-amber-700">${child.pending_fees}</p><p className="text-amber-500">Pending</p></div>
-                  </div>
-                  <div className="flex space-x-2 mt-3">
-                    <button onClick={() => navigate(`/dashboard/child/${child.user.id}/attendance`)} className="flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-secondary-100 hover:bg-primary-100">Attendance</button>
-                    <button onClick={() => navigate(`/dashboard/child/${child.user.id}/grades`)} className="flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-secondary-100 hover:bg-primary-100">Grades</button>
-                    <button onClick={() => navigate(`/dashboard/child/${child.user.id}/fees`)} className="flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-secondary-100 hover:bg-primary-100">Fees</button>
+                    <div className="grid grid-cols-3 gap-2 text-center text-xs mb-3">
+                      <div className="p-2 bg-primary-50 rounded">
+                        <p className="font-bold text-primary-700">{child.average_grade || 0}%</p>
+                        <p className="text-primary-500">Avg Grade</p>
+                      </div>
+                      <div className="p-2 bg-emerald-50 rounded">
+                        <p className="font-bold text-emerald-700">{child.attendance_stats?.present || 0}</p>
+                        <p className="text-emerald-500">Present</p>
+                      </div>
+                      <div className="p-2 bg-amber-50 rounded">
+                        <p className="font-bold text-amber-700">${child.pending_fees || 0}</p>
+                        <p className="text-amber-500">Due</p>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button onClick={() => navigate(`/dashboard/child/${child.user?.id || child.id}/attendance`)}
+                        className="flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-secondary-100 hover:bg-primary-100 hover:text-primary-700 transition-colors">Attendance</button>
+                      <button onClick={() => navigate(`/dashboard/child/${child.user?.id || child.id}/grades`)}
+                        className="flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-secondary-100 hover:bg-primary-100 hover:text-primary-700 transition-colors">Grades</button>
+                      <button onClick={() => navigate(`/dashboard/child/${child.user?.id || child.id}/fees`)}
+                        className="flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-secondary-100 hover:bg-primary-100 hover:text-primary-700 transition-colors">Fees</button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {(stats.upcoming_events?.length > 0 || stats.announcements?.length > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {stats.upcoming_events?.length > 0 && (
+                <Card>
+                  <h3 className="font-semibold mb-3 flex items-center space-x-2 text-secondary-900">
+                    <Calendar className="w-4 h-4 text-amber-500" /><span>Upcoming Events</span>
+                  </h3>
+                  <div className="space-y-2">
+                    {stats.upcoming_events.slice(0, 3).map((e, i) => (
+                      <div key={i} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-secondary-50 transition-colors">
+                        <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Calendar className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-secondary-900 truncate">{e.title}</p>
+                          <p className="text-xs text-secondary-500">{e.event_date ? new Date(e.event_date).toLocaleDateString() : ''}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </Card>
-              ))}
+              )}
+              {stats.announcements?.length > 0 && (
+                <Card>
+                  <h3 className="font-semibold mb-3 flex items-center space-x-2 text-secondary-900">
+                    <Megaphone className="w-4 h-4 text-indigo-500" /><span>Announcements</span>
+                  </h3>
+                  <div className="space-y-3">
+                    {stats.announcements.slice(0, 3).map((a, i) => (
+                      <div key={i} className="border-l-2 border-indigo-300 pl-3">
+                        <p className="text-sm font-medium text-secondary-900 truncate">{a.title}</p>
+                        <p className="text-xs text-secondary-500 mt-0.5 line-clamp-1">{a.content}</p>
+                        <p className="text-xs text-secondary-400 mt-0.5">{new Date(a.created_at).toLocaleDateString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
             </div>
           )}
         </div>
