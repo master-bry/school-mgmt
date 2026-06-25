@@ -36,8 +36,8 @@ const Analytics = () => {
           { label: 'Active', value: data.overview?.active_schools, icon: UserCheck, color: 'from-emerald-500 to-emerald-600' },
           { label: 'Students', value: data.overview?.total_students, icon: GraduationCap, color: 'from-violet-500 to-violet-600' },
           { label: 'Teachers', value: data.overview?.total_teachers, icon: Users, color: 'from-orange-500 to-orange-600' },
-          { label: 'Collected', value: data.revenue?.total_collected ? `$${data.revenue.total_collected}` : '$0', icon: DollarSign, color: 'from-cyan-500 to-cyan-600' },
-          { label: 'Pending', value: data.revenue?.total_pending ? `$${data.revenue.total_pending}` : '$0', icon: TrendingUp, color: 'from-rose-500 to-rose-600' },
+          { label: 'Collected', value: data.revenue?.total_collected ? `$${Number(data.revenue.total_collected).toFixed(2)}` : '$0.00', icon: DollarSign, color: 'from-cyan-500 to-cyan-600' },
+          { label: 'Pending', value: data.revenue?.total_pending ? `$${Number(data.revenue.total_pending).toFixed(2)}` : '$0.00', icon: TrendingUp, color: 'from-rose-500 to-rose-600' },
         ].map((s, i) => (
           <div key={i} className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${s.color} p-4 shadow-sm`}>
             <p className="text-white/70 text-[11px] font-medium uppercase tracking-wider">{s.label}</p>
@@ -73,7 +73,7 @@ const Analytics = () => {
                     <p className="text-xs text-secondary-500">{s.student_count || 0} students</p>
                   </div>
                 </div>
-                <span className="text-sm font-semibold text-primary-600">${s.total_collected || 0}</span>
+                <span className="text-sm font-semibold text-primary-600">${Number(s.total_collected || 0).toFixed(2)}</span>
               </div>
             ))}
             {(data.top_schools || []).length === 0 && (

@@ -46,7 +46,7 @@ const CashierReports = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-primary-100">Total Fees Created</p>
-                <p className="text-3xl font-bold mt-1">${parseFloat(s.total_fees_created || 0).toLocaleString()}</p>
+                <p className="text-3xl font-bold mt-1">${parseFloat(s.total_fees_created || 0).toFixed(2)}</p>
               </div>
               <TrendingUp className="w-12 h-12 text-primary-200" />
             </div>
@@ -56,7 +56,7 @@ const CashierReports = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-accent-100">Total Collected</p>
-                <p className="text-3xl font-bold mt-1">${parseFloat(s.total_collected || 0).toLocaleString()}</p>
+                <p className="text-3xl font-bold mt-1">${parseFloat(s.total_collected || 0).toFixed(2)}</p>
               </div>
               <DollarSign className="w-12 h-12 text-accent-200" />
             </div>
@@ -66,7 +66,7 @@ const CashierReports = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-red-100">Total Outstanding</p>
-                <p className="text-3xl font-bold mt-1">${parseFloat(s.total_outstanding || 0).toLocaleString()}</p>
+                <p className="text-3xl font-bold mt-1">${parseFloat(s.total_outstanding || 0).toFixed(2)}</p>
               </div>
               <AlertCircle className="w-12 h-12 text-red-200" />
             </div>
@@ -110,8 +110,8 @@ const CashierReports = () => {
                     {(reports.by_category || []).map((cat, i) => (
                       <tr key={i} className="border-b border-secondary-100 hover:bg-secondary-50">
                         <td className="py-3 pr-4 text-secondary-900 font-medium capitalize">{cat.fee_category || cat.category}</td>
-                        <td className="text-right py-3 px-4 text-secondary-700">${parseFloat(cat.total).toLocaleString()}</td>
-                        <td className="text-right py-3 pl-4 text-accent-600 font-medium">${parseFloat(cat.collected).toLocaleString()}</td>
+                        <td className="text-right py-3 px-4 text-secondary-700">${parseFloat(cat.total).toFixed(2)}</td>
+                        <td className="text-right py-3 pl-4 text-accent-600 font-medium">${parseFloat(cat.collected).toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>

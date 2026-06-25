@@ -27,7 +27,7 @@ const HoSAnalytics = () => {
 
   const maxStudents = Math.max(...(analytics.students_per_class?.map(s => s.count) || [1]), 1)
   const maxAttendance = Math.max(...(analytics.attendance_by_class?.map(a => a.percentage || a.present_count) || [1]), 1)
-  const maxPerformance = Math.max(...(analytics.subject_performance?.map(s => s.average || s.score) || [1]), 1)
+  const maxPerformance = Math.max(...(analytics.subject_performance?.map(s => s.average || s.average_score || s.score) || [1]), 1)
 
   return (
     <div className="space-y-6">
@@ -72,10 +72,10 @@ const HoSAnalytics = () => {
                 <div key={i}>
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-secondary-700 font-medium">{item.class_name || item.name || item.class}</span>
-                    <span className="text-secondary-600">{item.percentage || Math.round((item.present_count / (item.total_count || 1)) * 100)}%</span>
+                    <span className="text-secondary-600">{Number(item.percentage || (item.present_count / (item.total_count || 1)) * 100).toFixed(2)}%</span>
                   </div>
                   <div className="w-full bg-secondary-100 rounded-full h-3">
-                    <div className="bg-accent-500 h-3 rounded-full transition-all" style={{ width: `${item.percentage || (item.present_count / (item.total_count || 1)) * 100}%` }} />
+                    <div className="bg-accent-500 h-3 rounded-full transition-all" style={{ width: `${Number(item.percentage || (item.present_count / (item.total_count || 1)) * 100).toFixed(2)}%` }} />
                   </div>
                 </div>
               ))}
@@ -94,12 +94,12 @@ const HoSAnalytics = () => {
             <div className="relative w-40 h-40">
               <svg className="w-full h-full" viewBox="0 0 36 36">
                 <path className="text-secondary-200" fill="none" stroke="currentColor" strokeWidth="3.8" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path className="text-green-500" fill="none" stroke="currentColor" strokeWidth="3.8" strokeDasharray={`${analytics.fee_completion_rate?.completed || 0}, ${(analytics.fee_completion_rate?.completed || 0) + (analytics.fee_completion_rate?.pending || 1)}`} strokeLinecap="round" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path className="text-green-500" fill="none" stroke="currentColor" strokeWidth="3.8" strokeDasharray={`${(() => { const c = analytics.fee_completion_rate?.completed || 0; const p = analytics.fee_completion_rate?.pending || 0; const t = c + p || 1; return Number((c / t) * 100).toFixed(2); })()}, ${(() => { const c = analytics.fee_completion_rate?.completed || 0; const p = analytics.fee_completion_rate?.pending || 0; const t = c + p || 1; return Number((p / t) * 100).toFixed(2); })()}`} strokeLinecap="round" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-secondary-900">
-                    {Math.round((analytics.fee_completion_rate?.completed / ((analytics.fee_completion_rate?.completed || 0) + (analytics.fee_completion_rate?.pending || 1))) * 100)}%
+                    {Number((analytics.fee_completion_rate?.completed / ((analytics.fee_completion_rate?.completed || 0) + (analytics.fee_completion_rate?.pending || 1))) * 100).toFixed(2)}%
                   </p>
                   <p className="text-sm text-secondary-500">Completed</p>
                 </div>
@@ -129,10 +129,10 @@ const HoSAnalytics = () => {
                 <div key={i}>
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-secondary-700 font-medium">{item.subject_name || item.name || item.subject}</span>
-                    <span className="text-secondary-600">{item.average || item.score}%</span>
+                    <span className="text-secondary-600">{Number(item.average || item.average_score || item.score || 0).toFixed(2)}%</span>
                   </div>
                   <div className="w-full bg-secondary-100 rounded-full h-3">
-                    <div className="bg-purple-500 h-3 rounded-full transition-all" style={{ width: `${item.average || item.score}%` }} />
+                    <div className="bg-purple-500 h-3 rounded-full transition-all" style={{ width: `${Number(((item.average || item.average_score || item.score || 0) / maxPerformance) * 100).toFixed(2)}%` }} />
                   </div>
                 </div>
               ))}

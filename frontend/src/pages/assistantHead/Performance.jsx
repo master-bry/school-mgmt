@@ -39,7 +39,7 @@ const AHPerformance = () => {
           { label: 'Total Classes', value: data.length, icon: BarChart3, color: 'from-primary-500 to-primary-600' },
           { label: 'Total Students', value: data.reduce((s, c) => s + (c.students_count || 0), 0), icon: Users, color: 'from-emerald-500 to-emerald-600' },
           { label: 'Total Present', value: data.reduce((s, c) => s + (c.present_count || 0), 0), icon: CheckCircle, color: 'from-violet-500 to-violet-600' },
-          { label: 'Avg Attendance', value: (() => { const tot = data.reduce((s, c) => s + (c.students_count || 0), 0); return tot > 0 ? Math.round(data.reduce((s, c) => s + (c.present_count || 0), 0) / tot * 100) + '%' : '0%' })(), icon: GraduationCap, color: 'from-cyan-500 to-cyan-600' },
+          { label: 'Avg Attendance', value: (() => { const tot = data.reduce((s, c) => s + (c.students_count || 0), 0); return tot > 0 ? Number(data.reduce((s, c) => s + (c.present_count || 0), 0) / tot * 100).toFixed(2) + '%' : '0.00%' })(), icon: GraduationCap, color: 'from-cyan-500 to-cyan-600' },
         ].map((s, i) => (
           <div key={i} className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${s.color} p-4 shadow-sm`}>
             <p className="text-white/70 text-[11px] font-medium uppercase">{s.label}</p>
@@ -78,7 +78,7 @@ const AHPerformance = () => {
             </thead>
             <tbody className="divide-y divide-secondary-100">
               {data.map(c => {
-                const rate = c.students_count > 0 ? Math.round((c.present_count || 0) / c.students_count * 100) : 0
+                const rate = c.students_count > 0 ? Number((c.present_count || 0) / c.students_count * 100).toFixed(2) : '0.00'
                 return (
                   <tr key={c.id || c.name} className="hover:bg-secondary-50/50">
                     <td className="py-3 px-4 text-sm font-medium text-secondary-900">{c.name}</td>
