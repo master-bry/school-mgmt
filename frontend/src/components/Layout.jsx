@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import axios from 'axios'
 import {
   GraduationCap, LogOut, Users, BookOpen, Calendar, DollarSign, Library,
   Settings, ChevronDown, Menu, X, LayoutDashboard, UserCheck, FileSpreadsheet,
   Clock, BarChart3, ChevronRight, ClipboardCheck, BookMarked,
   FileText, CreditCard, TrendingUp, Award, ShieldCheck,
   FileSignature, Megaphone, Newspaper, MapPin, FolderOpen,
-  PieChart, Wallet, BookCheck, Monitor, Building2
+  PieChart, Wallet, BookCheck, Monitor, Building2, Globe, Languages
 } from 'lucide-react'
 
 const roleLabels = {
@@ -17,7 +18,7 @@ const roleLabels = {
 }
 
 const Layout = ({ children }) => {
-  const { user, logout } = useAuth()
+  const { user, logout, features } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -27,6 +28,23 @@ const Layout = ({ children }) => {
     logout()
     navigate('/login')
   }
+
+  const switchLocale = useCallback(async () => {
+    const current = user?.school?.locale || 'en'
+    const next = current === 'en' ? 'sw' : 'en'
+    try {
+      await axios.post('/api/locale', { locale: next })
+      window.location.reload()
+    } catch {}
+  }, [user])
+
+  const switchLocaleTo = useCallback(async (locale) => {
+    if (locale === (user?.school?.locale || 'en')) return
+    try {
+      await axios.post('/api/locale', { locale })
+      window.location.reload()
+    } catch {}
+  }, [user])
 
   const navItems = {
     super_admin: [
@@ -207,6 +225,16 @@ const Layout = ({ children }) => {
             </div>
 
             <div className="flex items-center space-x-3">
+              {/* Language Toggle (Swahili Portal) */}
+              {features?.swahili_portal && (
+                <button onClick={switchLocale}
+                  className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg hover:bg-secondary-100 transition-colors text-sm"
+                  title="Switch language">
+                  <Languages className="w-4 h-4 text-secondary-500" />
+                  <span className="font-medium text-secondary-600">{user?.school?.locale === 'sw' ? 'SW' : 'EN'}</span>
+                </button>
+              )}
+
               {/* User dropdown */}
               <div className="relative">
                 <button onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -236,6 +264,20 @@ const Layout = ({ children }) => {
                         <Settings className="w-4 h-4" />
                         <span>Profile Settings</span>
                       </button>
+                      {features?.swahili_portal && (
+                        <>
+                          <div className="border-t border-secondary-100 my-1" />
+                          <div className="px-4 py-2">
+                            <p className="text-xs text-secondary-500 font-medium mb-1">Language</p>
+                            <div className="flex space-x-2">
+                              <button onClick={() => switchLocaleTo('en')}
+                                className={`flex-1 text-xs font-medium py-1.5 rounded ${user?.school?.locale === 'en' ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100'}`}>English</button>
+                              <button onClick={() => switchLocaleTo('sw')}
+                                className={`flex-1 text-xs font-medium py-1.5 rounded ${user?.school?.locale === 'sw' ? 'bg-primary-100 text-primary-700' : 'text-secondary-600 hover:bg-secondary-100'}`}>Kiswahili</button>
+                            </div>
+                          </div>
+                        </>
+                      )}
                       <div className="border-t border-secondary-100 my-1" />
                       <button onClick={handleLogout}
                         className="w-full flex items-center space-x-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
