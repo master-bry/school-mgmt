@@ -161,9 +161,6 @@ const Layout = ({ children }) => {
     parent: [
       { icon: LayoutDashboard, labelKey: 'nav.dashboard', path: '/dashboard' },
       { icon: Users, labelKey: 'nav.children', path: '/dashboard/children' },
-      { icon: UserCheck, labelKey: 'nav.attendance', path: '/dashboard/attendance' },
-      { icon: BarChart3, labelKey: 'nav.grades', path: '/dashboard/grades' },
-      { icon: DollarSign, labelKey: 'nav.fees', path: '/dashboard/fees' },
     ],
   }
 
