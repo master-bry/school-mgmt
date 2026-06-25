@@ -51,6 +51,7 @@ import StudentResources from './pages/student/Resources'
 import LibraryResources from './pages/LibraryResources'
 import LibraryBooks from './pages/LibraryBooks'
 import SuperAdminSchools from './pages/superAdmin/Schools'
+import SuperAdminSchoolDetail from './pages/superAdmin/SchoolDetail'
 import SuperAdminSubscriptions from './pages/superAdmin/Subscriptions'
 import SuperAdminFeatureFlags from './pages/superAdmin/FeatureFlags'
 import SuperAdminAnalytics from './pages/superAdmin/Analytics'
@@ -116,6 +117,7 @@ function App() {
             <Route path="teacher/books" element={<LibraryBooks apiPrefix="/api/teacher" />} />
 
             <Route path="super-admin/schools" element={<SuperAdminSchools />} />
+            <Route path="super-admin/schools/:id" element={<SuperAdminSchoolDetail />} />
             <Route path="super-admin/subscriptions" element={<SuperAdminSubscriptions />} />
             <Route path="super-admin/feature-flags" element={<SuperAdminFeatureFlags />} />
             <Route path="super-admin/analytics" element={<SuperAdminAnalytics />} />

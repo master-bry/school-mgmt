@@ -8,12 +8,12 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 class Kernel extends ConsoleKernel
 {
     protected $commands = [
-        //
+        \App\Console\Commands\SubscriptionsExpire::class,
     ];
 
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('subscriptions:expire')->daily();
     }
 
     protected function commands()
