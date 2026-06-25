@@ -60,78 +60,78 @@ import SuperAdminAnalytics from './pages/superAdmin/Analytics'
 function App() {
   return (
     <ToastProvider>
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />}>
-            <Route path="users" element={<Users />} />
-            <Route path="admin/parents" element={<AdminParents />} />
-            <Route path="classes" element={<Classes />} />
-            <Route path="fees" element={<Fees />} />
-            <Route path="library" element={<Library />} />
-            <Route path="attendance" element={<Attendance />} />
-            <Route path="grades" element={<Grades />} />
-            <Route path="timetable" element={<Timetable />} />
-            <Route path="children" element={<Children />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="child/:id/attendance" element={<Attendance />} />
-            <Route path="child/:id/grades" element={<Grades />} />
-            <Route path="child/:id/fees" element={<Fees />} />
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />}>
+              <Route path="users" element={<Users />} />
+              <Route path="admin/parents" element={<AdminParents />} />
+              <Route path="classes" element={<Classes />} />
+              <Route path="fees" element={<Fees />} />
+              <Route path="library" element={<Library />} />
+              <Route path="attendance" element={<Attendance />} />
+              <Route path="grades" element={<Grades />} />
+              <Route path="timetable" element={<Timetable />} />
+              <Route path="children" element={<Children />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="child/:id/attendance" element={<Attendance />} />
+              <Route path="child/:id/grades" element={<Grades />} />
+              <Route path="child/:id/fees" element={<Fees />} />
 
-            <Route path="academician/students" element={<AcademicianStudents />} />
-            <Route path="academician/parents" element={<AcademicianParents />} />
-            <Route path="academician/classes" element={<AcademicianClasses />} />
-            <Route path="academician/books" element={<AcademicianBooks />} />
-            <Route path="academician/timetables" element={<AcademicianTimetables />} />
-            <Route path="academician/assignments" element={<AcademicianAssignments />} />
-            <Route path="academician/submissions" element={<AcademicianSubmissions />} />
-            <Route path="academician/blogs" element={<AcademicianBlogs />} />
-            <Route path="academician/transcripts" element={<AcademicianTranscripts />} />
+              <Route path="academician/students" element={<AcademicianStudents />} />
+              <Route path="academician/parents" element={<AcademicianParents />} />
+              <Route path="academician/classes" element={<AcademicianClasses />} />
+              <Route path="academician/books" element={<AcademicianBooks />} />
+              <Route path="academician/timetables" element={<AcademicianTimetables />} />
+              <Route path="academician/assignments" element={<AcademicianAssignments />} />
+              <Route path="academician/submissions" element={<AcademicianSubmissions />} />
+              <Route path="academician/blogs" element={<AcademicianBlogs />} />
+              <Route path="academician/transcripts" element={<AcademicianTranscripts />} />
 
-            <Route path="cashier/fees" element={<CashierFees />} />
-            <Route path="cashier/staff" element={<CashierStaff />} />
-            <Route path="cashier/parents" element={<CashierParents />} />
-            <Route path="cashier/reports" element={<CashierReports />} />
+              <Route path="cashier/fees" element={<CashierFees />} />
+              <Route path="cashier/staff" element={<CashierStaff />} />
+              <Route path="cashier/parents" element={<CashierParents />} />
+              <Route path="cashier/reports" element={<CashierReports />} />
 
-            <Route path="head-of-school/fees" element={<HoSFees />} />
-            <Route path="head-of-school/staff" element={<HoSStaff />} />
-            <Route path="head-of-school/parents" element={<HoSParents />} />
-            <Route path="head-of-school/teachers" element={<HoSTeachers />} />
-            <Route path="head-of-school/students" element={<HoSStudents />} />
-            <Route path="head-of-school/approvals" element={<HoSApprovals />} />
-            <Route path="head-of-school/transcripts" element={<HoSTranscripts />} />
-            <Route path="head-of-school/analytics" element={<HoSAnalytics />} />
-            <Route path="assistant-head/fees" element={<AHFees />} />
-            <Route path="assistant-head/performance" element={<AHPerformance />} />
-            <Route path="assistant-head/parents" element={<AHParents />} />
-            <Route path="assistant-head/students" element={<AHStudents />} />
-            <Route path="assistant-head/teachers" element={<AHTeachers />} />
-            <Route path="assistant-head/submissions" element={<AHSubmissions />} />
-            <Route path="assistant-head/approvals" element={<AHApprovals />} />
+              <Route path="head-of-school/fees" element={<HoSFees />} />
+              <Route path="head-of-school/staff" element={<HoSStaff />} />
+              <Route path="head-of-school/parents" element={<HoSParents />} />
+              <Route path="head-of-school/teachers" element={<HoSTeachers />} />
+              <Route path="head-of-school/students" element={<HoSStudents />} />
+              <Route path="head-of-school/approvals" element={<HoSApprovals />} />
+              <Route path="head-of-school/transcripts" element={<HoSTranscripts />} />
+              <Route path="head-of-school/analytics" element={<HoSAnalytics />} />
+              <Route path="assistant-head/fees" element={<AHFees />} />
+              <Route path="assistant-head/performance" element={<AHPerformance />} />
+              <Route path="assistant-head/parents" element={<AHParents />} />
+              <Route path="assistant-head/students" element={<AHStudents />} />
+              <Route path="assistant-head/teachers" element={<AHTeachers />} />
+              <Route path="assistant-head/submissions" element={<AHSubmissions />} />
+              <Route path="assistant-head/approvals" element={<AHApprovals />} />
 
-            <Route path="blogs" element={<StudentBlogs />} />
-            <Route path="events" element={<StudentEvents />} />
-            <Route path="resources" element={<LibraryResources apiPrefix="/api/student" />} />
-            <Route path="books" element={<LibraryBooks apiPrefix="/api/student" />} />
-            <Route path="classes" element={<Classes />} />
-            <Route path="attendance" element={<Attendance />} />
-            <Route path="grades" element={<Grades />} />
-            <Route path="teacher/resources" element={<LibraryResources apiPrefix="/api/teacher" />} />
-            <Route path="teacher/books" element={<LibraryBooks apiPrefix="/api/teacher" />} />
+              <Route path="blogs" element={<StudentBlogs />} />
+              <Route path="events" element={<StudentEvents />} />
+              <Route path="resources" element={<LibraryResources apiPrefix="/api/student" />} />
+              <Route path="books" element={<LibraryBooks apiPrefix="/api/student" />} />
+              <Route path="classes" element={<Classes />} />
+              <Route path="attendance" element={<Attendance />} />
+              <Route path="grades" element={<Grades />} />
+              <Route path="teacher/resources" element={<LibraryResources apiPrefix="/api/teacher" />} />
+              <Route path="teacher/books" element={<LibraryBooks apiPrefix="/api/teacher" />} />
 
-            <Route path="super-admin/schools" element={<SuperAdminSchools />} />
-            <Route path="super-admin/schools/:id" element={<SuperAdminSchoolDetail />} />
-            <Route path="super-admin/subscriptions" element={<SuperAdminSubscriptions />} />
-            <Route path="super-admin/feature-flags" element={<SuperAdminFeatureFlags />} />
-            <Route path="super-admin/analytics" element={<SuperAdminAnalytics />} />
-          </Route>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
-  </ToastProvider>
+              <Route path="super-admin/schools" element={<SuperAdminSchools />} />
+              <Route path="super-admin/schools/:id" element={<SuperAdminSchoolDetail />} />
+              <Route path="super-admin/subscriptions" element={<SuperAdminSubscriptions />} />
+              <Route path="super-admin/feature-flags" element={<SuperAdminFeatureFlags />} />
+              <Route path="super-admin/analytics" element={<SuperAdminAnalytics />} />
+            </Route>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ToastProvider>
   )
 }
 

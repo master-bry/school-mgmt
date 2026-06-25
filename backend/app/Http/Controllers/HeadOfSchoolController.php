@@ -218,7 +218,7 @@ class HeadOfSchoolController extends Controller
             ->join('exams', 'exams.subject_id', '=', 'subjects.id')
             ->join('grades', 'grades.exam_id', '=', 'exams.id')
             ->where('subjects.school_id', $schoolId)
-            ->selectRaw("subjects.id, subjects.name, avg(grades.percentage) as average_score")
+            ->selectRaw("subjects.id, subjects.name, avg(grades.percentage) as average")
             ->groupBy('subjects.id', 'subjects.name')
             ->get();
 
