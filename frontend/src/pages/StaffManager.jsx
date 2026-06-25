@@ -203,7 +203,6 @@ const EditStaffModal = ({ apiPrefix, staff, onClose, onSaved }) => {
     religion: staff.religion || '', nationality: staff.nationality || '', blood_group: staff.blood_group || '',
     marital_status: staff.marital_status || '', employee_code: staff.employee_code || '',
     date_of_birth: staff.date_of_birth ? staff.date_of_birth.substring(0, 10) : '',
-    is_active: staff.is_active,
     employment_type: d.employment_type || '', department: d.department || '',
     qualification: d.qualification || '', years_experience: d.years_experience || '', previous_employer: d.previous_employer || '',
     date_joined: d.date_joined ? d.date_joined.substring(0, 10) : '',
@@ -253,12 +252,8 @@ const EditStaffModal = ({ apiPrefix, staff, onClose, onSaved }) => {
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center space-x-4 mb-2">
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input type="checkbox" checked={form.is_active} onChange={e => update('is_active', e.target.checked)} className="w-4 h-4 rounded border-secondary-300 text-primary-600" />
-              <span className="text-sm font-medium text-secondary-700">Active</span>
-            </label>
-            <span className="text-xs text-secondary-400">Current status: <strong>{STATUS_LABELS[staff.status] || staff.status}</strong></span>
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-xs text-secondary-500">Status: <strong className={`${STATUS_COLORS[staff.status]} px-2 py-0.5 rounded-full`}>{STATUS_LABELS[staff.status] || staff.status}</strong></span>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input label="Employee Code" value={form.employee_code} onChange={e => update('employee_code', e.target.value)} />

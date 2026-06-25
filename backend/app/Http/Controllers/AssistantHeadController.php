@@ -465,7 +465,6 @@ class AssistantHeadController extends Controller
             'marital_status' => 'nullable|string|max:50',
             'employee_code' => 'nullable|string|max:100',
             'date_of_birth' => 'nullable|date',
-            'is_active' => 'sometimes|boolean',
         ]);
         $staff->update($userData);
 

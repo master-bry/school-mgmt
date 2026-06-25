@@ -61,7 +61,7 @@ class HeadOfSchoolController extends Controller
         $budgetUtilization = $agg->fees_budget > 0
             ? round(($agg->fees_collected / $agg->fees_budget) * 100, 1) : 0;
         $attendanceRate = $agg->attend_total > 0
-            ? round(($agg->attend_present / $agg->attend_total) * 100, 1) : 0;
+            ? min(100, round(($agg->attend_present / $agg->attend_total) * 100, 1)) : 0;
 
         // Query 2: class enrollment + avg grades + attendance by class
         $classes = DB::select("
@@ -108,7 +108,7 @@ class HeadOfSchoolController extends Controller
                 'name'             => $c->name,
                 'students_count'   => $c->students_count,
                 'avg_grade'        => round($avgGrades->get($c->id, 0), 1),
-                'attendance_rate'  => $attC ? round(($attC->present / max(1, $attC->total)) * 100, 1) : 0,
+                'attendance_rate'  => $attC ? min(100, round(($attC->present / max(1, $attC->total)) * 100, 1)) : 0,
             ];
         }
 
@@ -181,16 +181,38 @@ class HeadOfSchoolController extends Controller
     public function analytics()
     {
         $schoolId = $this->schoolId();
+        $today = now()->toDateString();
 
-        $studentsPerClass = ClassModel::where('school_id', $schoolId)->withCount('students')->get(['id', 'name']);
+        $todayAtt = DB::table('attendances')
+            ->join('users', 'users.id', '=', 'attendances.student_id')
+            ->join('classes', 'classes.id', '=', 'users.class_id')
+            ->where('attendances.school_id', $schoolId)
+            ->where('attendances.date', $today)
+            ->selectRaw('classes.id, classes.name, count(*) as total_count, sum(case when attendances.status = ? then 1 else 0 end) as present_count', ['present'])
+            ->groupBy('classes.id', 'classes.name')
+            ->get()->keyBy('id');
 
-        $attendanceByClass = ClassModel::where('school_id', $schoolId)
-            ->withCount(['students', 'attendances as present_count' => fn($q) => $q->where('status', 'present')])
-            ->get(['id', 'name']);
+        $classes = ClassModel::where('school_id', $schoolId)->withCount('students')->get(['id', 'name']);
+        $studentsPerClass = $classes->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'count' => $c->students_count]);
 
-        $feeCompletionRate = Fee::where('school_id', $schoolId)
+        $attendanceByClass = $classes->map(fn($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+                'students_count' => $c->students_count,
+                'present_count' => $todayAtt->get($c->id)->present_count ?? 0,
+                'total_count' => $todayAtt->get($c->id)->total_count ?? 0,
+                'percentage' => ($todayAtt->get($c->id)->total_count ?? 0) > 0
+                    ? min(100, round((($todayAtt->get($c->id)->present_count ?? 0) / $todayAtt->get($c->id)->total_count) * 100, 1))
+                    : 0,
+            ]);
+
+        $fees = Fee::where('school_id', $schoolId)
             ->selectRaw("count(*) as total, sum(case when status='paid' then 1 else 0 end) as paid_count")
             ->first();
+        $feeCompletionRate = [
+            'completed' => $fees->paid_count ?? 0,
+            'pending' => ($fees->total ?? 0) - ($fees->paid_count ?? 0),
+        ];
 
         $subjectPerformance = DB::table('subjects')
             ->join('exams', 'exams.subject_id', '=', 'subjects.id')
@@ -577,9 +599,9 @@ class HeadOfSchoolController extends Controller
             'marital_status' => 'nullable|string|max:50',
             'employee_code' => 'nullable|string|max:100',
             'date_of_birth' => 'nullable|date',
-            'is_active' => 'sometimes|boolean',
         ]);
         $staff->update($userData);
+        $staff->update(['is_active' => in_array($staff->status, [User::STATUS_ACTIVE, User::STATUS_PROBATION, User::STATUS_ON_LEAVE])]);
 
         $detailData = $request->validate([
             'salary' => 'nullable|numeric|min:0',
