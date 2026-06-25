@@ -759,43 +759,168 @@ const Dashboard = () => {
       {user.role === 'teacher' && (
         <div className="space-y-6">
           <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.teacher_subtitle')} />
-          <StatCards items={[
-            { label: 'My Classes', value: stats.assigned_classes || 0, icon: BookOpen, gradient: 'from-primary-600 to-primary-700' },
-            { label: 'My Subjects', value: stats.assigned_subjects || 0, icon: Calendar, gradient: 'from-emerald-600 to-emerald-700' },
-            { label: 'Total Students', value: stats.total_students || 0, icon: Users, gradient: 'from-violet-600 to-violet-700' },
-          ]} />
 
-          {stats.today_timetable?.length > 0 && (
+          {/* Top stat cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              { label: 'My Classes', value: stats.assigned_classes || 0, icon: BookOpen, color: 'from-primary-500 to-primary-600' },
+              { label: 'My Subjects', value: stats.assigned_subjects || 0, icon: Calendar, color: 'from-emerald-500 to-emerald-600' },
+              { label: 'Total Students', value: stats.total_students || 0, icon: Users, color: 'from-violet-500 to-violet-600' },
+              { label: 'Today Present', value: stats.today_attendance?.present || 0, icon: CheckCircle, color: 'from-accent-500 to-accent-600' },
+              { label: 'Today Absent', value: stats.today_attendance?.absent || 0, icon: XCircle, color: 'from-red-500 to-red-600' },
+              { label: 'Marked Today', value: stats.today_attendance?.total_marked || 0, icon: Clock, color: 'from-cyan-500 to-cyan-600' },
+            ].map((s, i) => (
+              <div key={i} className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${s.color} p-4 shadow-sm`}>
+                <p className="text-white/70 text-[11px] font-medium uppercase tracking-wider">{s.label}</p>
+                <p className="text-2xl font-bold text-white mt-1">{s.value}</p>
+                <s.icon className="absolute right-2 bottom-2 w-8 h-8 text-white/20" />
+              </div>
+            ))}
+          </div>
+
+          {/* My Classes cards */}
+          {(stats.classes || []).length > 0 && (
             <Card>
               <h2 className="text-base font-semibold mb-4 flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-primary-600" /><span>Today's Schedule</span>
+                <BookOpen className="w-5 h-5 text-primary-600" /><span>My Classes</span>
               </h2>
-              <table className="w-full text-sm">
-                <thead><tr className="border-b border-secondary-200"><th className="text-left py-2 px-2">Time</th><th className="text-left py-2 px-2">Class</th><th className="text-left py-2 px-2">Subject</th><th className="text-left py-2 px-2">Room</th></tr></thead>
-                <tbody>{stats.today_timetable.map((tt, i) => (
-                  <tr key={i} className="border-b border-secondary-100"><td className="py-2 px-2">{tt.start_time?.substring(0,5)}-{tt.end_time?.substring(0,5)}</td><td className="py-2 px-2">{tt.class?.name}</td><td className="py-2 px-2">{tt.subject?.name}</td><td className="py-2 px-2">{tt.room_number}</td></tr>
-                ))}</tbody>
-              </table>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {stats.classes.map((cls) => (
+                  <div key={cls.id} className="p-4 bg-secondary-50 rounded-xl hover:bg-primary-50 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-secondary-900">{cls.name}{cls.section ? ` - ${cls.section}` : ''}</h3>
+                      <span className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full font-medium">
+                        {cls.students_count || cls.students?.length || 0} students
+                      </span>
+                    </div>
+                    <div className="flex space-x-2 mt-3">
+                      <Button size="sm" variant="secondary" onClick={() => navigate('/dashboard/attendance')}>
+                        <Clock className="w-3 h-3 mr-1" /> Attendance
+                      </Button>
+                      <Button size="sm" variant="secondary" onClick={() => navigate('/dashboard/grades')}>
+                        <TrendingUp className="w-3 h-3 mr-1" /> Grades
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Card>
           )}
 
+          {/* My Subjects */}
+          {(stats.subjects || []).length > 0 && (
+            <Card>
+              <h2 className="text-base font-semibold mb-4 flex items-center space-x-2">
+                <Award className="w-5 h-5 text-emerald-600" /><span>My Subjects</span>
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {stats.subjects.map((subj) => (
+                  <span key={subj.id} className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium">
+                    {subj.name}
+                  </span>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Today's Schedule */}
+          {(stats.today_timetable || []).length > 0 && (
+            <Card>
+              <h2 className="text-base font-semibold mb-4 flex items-center space-x-2">
+                <Clock className="w-5 h-5 text-primary-600" /><span>Today's Schedule</span>
+              </h2>
+              <div className="space-y-2">
+                {stats.today_timetable.map((tt, i) => (
+                  <div key={i} className="flex items-center p-3 bg-secondary-50 rounded-lg hover:bg-primary-50/50 transition-colors">
+                    <div className="w-14 text-center flex-shrink-0">
+                      <p className="text-xs font-bold text-primary-600">{tt.start_time?.substring(0,5)}</p>
+                      <p className="text-[10px] text-secondary-400">{tt.end_time?.substring(0,5)}</p>
+                    </div>
+                    <div className="w-0.5 h-8 bg-primary-200 mx-3 flex-shrink-0 rounded-full" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-secondary-900 truncate">{tt.subject?.name}</p>
+                      <p className="text-xs text-secondary-500 truncate">{tt.class?.name} · Room {tt.room_number || 'N/A'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Recent Grades + Recent Attendance */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {stats.recent_grades?.length > 0 && (
+            {(stats.recent_grades || []).length > 0 && (
               <Card>
-                <h2 className="text-base font-semibold mb-4">Recent Grades</h2>
-                <div className="space-y-2">{stats.recent_grades.slice(0, 5).map((g, i) => (
-                  <div key={i} className="flex justify-between p-2 bg-secondary-50 rounded"><span className="text-sm">{g.student?.name}</span><span className="text-sm font-semibold">{g.percentage}%</span></div>
-                ))}</div>
+                <h2 className="text-base font-semibold mb-4 flex items-center space-x-2">
+                  <TrendingUp className="w-5 h-5 text-violet-600" /><span>Recent Grades</span>
+                </h2>
+                <div className="space-y-2">
+                  {stats.recent_grades.slice(0, 5).map((g, i) => (
+                    <div key={i} className="flex items-center justify-between p-2.5 bg-secondary-50 rounded-lg">
+                      <div className="flex items-center space-x-2 min-w-0">
+                        <div className="w-6 h-6 bg-violet-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-[10px] font-bold text-violet-600">{g.student?.name?.charAt(0)}</span>
+                        </div>
+                        <span className="text-sm text-secondary-900 truncate">{g.student?.name}</span>
+                      </div>
+                      <div className="flex items-center space-x-2 flex-shrink-0">
+                        <span className="text-sm font-semibold text-secondary-900">{g.percentage}%</span>
+                        <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${g.grade === 'A' || g.grade === 'A+' ? 'bg-emerald-100 text-emerald-700' : g.grade === 'B' || g.grade === 'B+' ? 'bg-blue-100 text-blue-700' : g.grade === 'C' ? 'bg-yellow-100 text-yellow-700' : g.grade === 'D' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>
+                          {g.grade}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </Card>
             )}
-            {stats.attendance_today !== undefined && (
+
+            {(stats.recent_attendances || []).length > 0 && (
               <Card>
-                <h2 className="text-base font-semibold mb-4">Attendance Today</h2>
-                <p className="text-4xl font-bold text-primary-600">{stats.attendance_today}</p>
-                <p className="text-sm text-secondary-500">{t('common.marked_today')}</p>
+                <h2 className="text-base font-semibold mb-4 flex items-center space-x-2">
+                  <Clock className="w-5 h-5 text-cyan-600" /><span>Recent Attendance</span>
+                </h2>
+                <div className="space-y-2">
+                  {stats.recent_attendances.slice(0, 5).map((a, i) => (
+                    <div key={i} className="flex items-center justify-between p-2.5 bg-secondary-50 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
+                          <span className="text-[10px] font-bold text-primary-600">{a.student?.name?.charAt(0)}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm text-secondary-900 truncate">{a.student?.name}</p>
+                          <p className="text-[10px] text-secondary-400">{a.class?.name} · {new Date(a.date).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full capitalize ${
+                        a.status === 'present' ? 'bg-green-100 text-green-700' :
+                        a.status === 'absent' ? 'bg-red-100 text-red-700' :
+                        a.status === 'late' ? 'bg-orange-100 text-orange-700' :
+                        a.status === 'excused' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>{a.status}</span>
+                    </div>
+                  ))}
+                </div>
               </Card>
             )}
           </div>
+
+          {/* Quick Actions */}
+          <Card>
+            <h2 className="text-base font-semibold mb-4">Quick Actions</h2>
+            <div className="flex flex-wrap gap-3">
+              <Button onClick={() => navigate('/dashboard/attendance')}>
+                <Clock className="w-4 h-4 mr-2" /> Mark Attendance
+              </Button>
+              <Button onClick={() => navigate('/dashboard/grades')}>
+                <TrendingUp className="w-4 h-4 mr-2" /> Enter Grades
+              </Button>
+              <Button onClick={() => navigate('/dashboard/classes')}>
+                <BookOpen className="w-4 h-4 mr-2" /> View Classes
+              </Button>
+            </div>
+          </Card>
         </div>
       )}
 

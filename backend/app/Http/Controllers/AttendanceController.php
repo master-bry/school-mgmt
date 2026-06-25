@@ -143,6 +143,23 @@ class AttendanceController extends Controller
         ]);
     }
 
+    public function showByDate(Request $request, $class_id)
+    {
+        $date = $request->query('date', now()->toDateString());
+
+        $attendances = Attendance::where('class_id', $class_id)
+            ->where('school_id', auth()->user()->school_id)
+            ->where('date', $date)
+            ->with('student:id,name')
+            ->get();
+
+        return response()->json([
+            'attendances' => $attendances,
+            'date' => $date,
+            'class_id' => (int) $class_id,
+        ]);
+    }
+
     public function studentAttendance()
     {
         $student = auth()->user();

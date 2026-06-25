@@ -57,7 +57,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/resources', [TeacherController::class, 'resources']);
         Route::get('/books', [TeacherController::class, 'books']);
         Route::post('/attendance', [AttendanceController::class, 'store']);
+        Route::get('/attendance/{class_id}/by-date', [AttendanceController::class, 'showByDate']);
         Route::get('/attendance/{class_id}', [AttendanceController::class, 'show']);
+        Route::get('/exams/{exam_id}/grades', [ExamController::class, 'examGrades']);
         Route::post('/grades', [ExamController::class, 'storeGrades']);
         Route::post('/grades/submit', [ExamController::class, 'submitGrades']);
     });

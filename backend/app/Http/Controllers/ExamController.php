@@ -67,6 +67,20 @@ class ExamController extends Controller
         return 'F';
     }
 
+    public function examGrades($exam_id)
+    {
+        $grades = Grade::where('exam_id', $exam_id)
+            ->with('student:id,name')
+            ->get();
+
+        $exam = Exam::with('subject', 'class')->findOrFail($exam_id);
+
+        return response()->json([
+            'exam' => $exam,
+            'grades' => $grades,
+        ]);
+    }
+
     public function studentGrades()
     {
         $student = auth()->user();

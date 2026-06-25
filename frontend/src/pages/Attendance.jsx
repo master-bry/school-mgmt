@@ -91,7 +91,7 @@ const Attendance = () => {
     }
   }
 
-  const loadStudentsForClass = async (classId) => {
+  const loadStudentsForClass = async (classId, date) => {
     if (!classId) {
       setStudents([])
       setAttendanceData({})
@@ -100,14 +100,37 @@ const Attendance = () => {
     const cls = classes.find(c => String(c.id) === String(classId))
     const classStudents = cls?.students || []
     setStudents(classStudents)
+
     const initial = {}
     const reasons = {}
     const days = {}
+
+    // Pre-fill defaults
     classStudents.forEach(s => {
       initial[s.id] = 'present'
       reasons[s.id] = ''
       days[s.id] = 1
     })
+
+    // If date provided, try to load existing attendance records
+    if (date && classId) {
+      try {
+        const res = await axios.get(`/api/teacher/attendance/${classId}/by-date`, { params: { date } })
+        const existing = res.data.attendances || []
+        existing.forEach(a => {
+          if (a.student_id) {
+            initial[a.student_id] = a.status
+            if (a.status === 'permission') {
+              reasons[a.student_id] = a.permission_reason || ''
+              days[a.student_id] = a.permission_days || 1
+            }
+          }
+        })
+      } catch (e) {
+        // No existing records, keep defaults
+      }
+    }
+
     setAttendanceData(initial)
     setPermissionReasons(reasons)
     setPermissionDays(days)
@@ -117,7 +140,13 @@ const Attendance = () => {
     const val = e.target.value
     setSelectedClass(val)
     setSummary(null)
-    if (val) loadStudentsForClass(val)
+    if (val) loadStudentsForClass(val, selectedDate)
+  }
+
+  const handleDateChange = (e) => {
+    const val = e.target.value
+    setSelectedDate(val)
+    if (selectedClass) loadStudentsForClass(selectedClass, val)
   }
 
   const handleSubmitAttendance = async () => {
@@ -216,7 +245,7 @@ const Attendance = () => {
             <div>
               <label className="label">Date</label>
               <input type="date" className="input" value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)} />
+                onChange={handleDateChange} />
             </div>
           </div>
           {students.length > 0 && (
