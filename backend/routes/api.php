@@ -46,7 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('classes', ClassController::class)->except(['create', 'edit']);
         Route::apiResource('subjects', SubjectController::class)->except(['create', 'edit']);
         Route::get('/rbac-matrix', [AdminController::class, 'rbacMatrix']);
-        Route::get('/audit-trail', [AdminController::class, 'auditTrail']);
+        Route::get('/audit-trail', [AdminController::class, 'auditTrail'])->middleware('feature:audit_trail');
         Route::get('/parents', [AdminController::class, 'getParents']);
     });
 
@@ -168,7 +168,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/staff/{id}/salary', [CashierController::class, 'updateStaffSalary']);
         Route::put('/staff/{id}/bonus', [CashierController::class, 'updateStaffBonus']);
         Route::get('/parents', [CashierController::class, 'getParents']);
-        Route::post('/parents/{id}/fee-reminder', [CashierController::class, 'sendFeeReminder']);
+        Route::post('/parents/{id}/fee-reminder', [CashierController::class, 'sendFeeReminder'])->middleware('feature:sms_notifications');
     });
 
     // ────── Head of School Routes ──────
@@ -295,17 +295,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('exams', [ExamController::class, 'index']);
 
     // ────── Notifications & SMS (Parent Portal / Tanzanian SMS Gateway) ──────
-    Route::middleware('role:parent')->prefix('notifications')->group(function () {
+    Route::middleware(['role:parent', 'feature:sms_notifications'])->prefix('notifications')->group(function () {
         Route::get('/', [ParentController::class, 'notifications']);
         Route::post('/{id}/read', [ParentController::class, 'markNotificationRead']);
     });
 
     // ────── Assignments (Student Assignment Locker) ──────
-    Route::middleware('role:student')->prefix('student')->group(function () {
+    Route::middleware(['role:student', 'feature:assignment_locker'])->prefix('student')->group(function () {
         Route::get('/assignments', [StudentController::class, 'assignments']);
         Route::post('/assignments/{id}/submit', [StudentController::class, 'submitAssignment']);
     });
-    Route::middleware('role:teacher')->prefix('teacher')->group(function () {
+    Route::middleware(['role:teacher', 'feature:assignment_locker'])->prefix('teacher')->group(function () {
         Route::post('/assignments', [TeacherController::class, 'storeAssignment']);
         Route::get('/assignments', [TeacherController::class, 'assignments']);
         Route::put('/assignments/{id}', [TeacherController::class, 'updateAssignment']);
@@ -323,22 +323,22 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/fees/invoices', [CashierController::class, 'invoices']);
         Route::post('/fees/{id}/receipt', [CashierController::class, 'generateReceipt']);
         Route::get('/debtors/aging', [CashierController::class, 'debtorsAging']);
-        Route::post('/debtors/remind', [CashierController::class, 'sendBulkReminders']);
+        Route::post('/debtors/remind', [CashierController::class, 'sendBulkReminders'])->middleware('feature:sms_notifications');
     });
 
     // ────── Parent Fee Payment Portal ──────
-    Route::middleware('role:parent')->prefix('parent')->group(function () {
+    Route::middleware(['role:parent', 'feature:gepg_integration'])->prefix('parent')->group(function () {
         Route::get('/payment-portal', [ParentController::class, 'paymentPortal']);
         Route::post('/generate-control-number', [ParentController::class, 'generateControlNumber']);
     });
 
     // ────── NECTA Grading & Report Card (Academician enhancement) ──────
     Route::middleware('role:academician')->prefix('academician')->group(function () {
-        Route::post('/grading/necta', [AcademicianController::class, 'computeNectaGrades']);
-        Route::get('/grading/necta-config', [AcademicianController::class, 'nectaGradingConfig']);
-        Route::post('/grading/necta-config', [AcademicianController::class, 'saveNectaGradingConfig']);
-        Route::post('/report-cards/generate', [AcademicianController::class, 'generateReportCards']);
-        Route::post('/timetables/conflict-free', [AcademicianController::class, 'generateConflictFreeTimetable']);
+        Route::post('/grading/necta', [AcademicianController::class, 'computeNectaGrades'])->middleware('feature:necta_grading');
+        Route::get('/grading/necta-config', [AcademicianController::class, 'nectaGradingConfig'])->middleware('feature:necta_grading');
+        Route::post('/grading/necta-config', [AcademicianController::class, 'saveNectaGradingConfig'])->middleware('feature:necta_grading');
+        Route::post('/report-cards/generate', [AcademicianController::class, 'generateReportCards'])->middleware('feature:report_cards');
+        Route::post('/timetables/conflict-free', [AcademicianController::class, 'generateConflictFreeTimetable'])->middleware('feature:conflict_timetable');
     });
 
     // ────── School Profile Configuration (Head of School / Super Admin) ──────
@@ -349,6 +349,29 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/terms', [HeadOfSchoolController::class, 'storeTerm']);
     });
 
+    // ────── School Features (any authenticated user) ──────
+    Route::middleware('auth:sanctum')->get('/school/features', function (Request $request) {
+        $user = $request->user();
+        if (!$user || !$user->school_id) {
+            return response()->json([]);
+        }
+        $school = $user->school;
+        $config = $school->config ?? [];
+        $features = $config['features'] ?? [];
+
+        $allKeys = [
+            'necta_grading', 'sms_notifications', 'swahili_portal',
+            'gepg_integration', 'assignment_locker', 'report_cards',
+            'conflict_timetable', 'audit_trail',
+        ];
+
+        $result = [];
+        foreach ($allKeys as $key) {
+            $result[$key] = $school->featureEnabled($key);
+        }
+        return response()->json($result);
+    });
+
     // ────── Tanzanian Localization ──────
-    Route::post('/locale', [AuthController::class, 'setLocale']);
+    Route::post('/locale', [AuthController::class, 'setLocale'])->middleware('feature:swahili_portal');
 });

@@ -105,4 +105,17 @@ class School extends Model
         $active = $this->isAccessible();
         $this->users()->update(['is_active' => $active]);
     }
+
+    public function featureEnabled(string $key): bool
+    {
+        $config = $this->config ?? [];
+        $features = $config['features'] ?? [];
+
+        if (array_key_exists($key, $features)) {
+            return (bool) $features[$key];
+        }
+
+        $global = FeatureFlag::whereNull('school_id')->where('feature_key', $key)->first();
+        return $global ? $global->is_enabled : false;
+    }
 }

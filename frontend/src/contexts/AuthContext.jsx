@@ -6,6 +6,7 @@ const AuthContext = createContext(null)
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [features, setFeatures] = useState(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -17,10 +18,20 @@ export const AuthProvider = ({ children }) => {
     }
   }, [])
 
+  const fetchFeatures = async () => {
+    try {
+      const res = await axios.get('/api/school/features')
+      setFeatures(res.data)
+    } catch {
+      setFeatures({})
+    }
+  }
+
   const fetchUser = async () => {
     try {
       const response = await axios.get('/api/user')
       setUser(response.data)
+      fetchFeatures()
     } catch (error) {
       localStorage.removeItem('token')
       delete axios.defaults.headers.common['Authorization']
@@ -34,6 +45,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('token', response.data.token)
     axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`
     setUser(response.data.user)
+    fetchFeatures()
     return response.data
   }
 
@@ -42,6 +54,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('token', response.data.token)
     axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`
     setUser(response.data.user)
+    fetchFeatures()
     return response.data
   }
 
@@ -54,11 +67,12 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('token')
       delete axios.defaults.headers.common['Authorization']
       setUser(null)
+      setFeatures(null)
     }
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, features }}>
       {children}
     </AuthContext.Provider>
   )
