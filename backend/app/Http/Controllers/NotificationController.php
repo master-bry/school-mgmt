@@ -6,6 +6,7 @@ use App\Models\Fee;
 use App\Models\Approval;
 use App\Models\GradeSubmission;
 use App\Models\ParentNotification;
+use App\Models\Transcript;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
@@ -63,6 +64,20 @@ class NotificationController extends Controller
                         'message' => "You have {$pendingSubmissions} grade submission(s) to review.",
                         'type' => 'grade_submission',
                         'action' => '/dashboard/head-of-school/approvals',
+                        'created_at' => now(),
+                        'read_at' => null,
+                    ];
+                }
+
+                $pendingTranscripts = Transcript::where('school_id', $schoolId)
+                    ->where('status', 'pending_approval')->count();
+                if ($pendingTranscripts > 0) {
+                    $notifications[] = [
+                        'id' => 'hos_pending_transcripts',
+                        'title' => 'Pending Transcript Approvals',
+                        'message' => "You have {$pendingTranscripts} transcript approval(s) waiting.",
+                        'type' => 'transcript_approval',
+                        'action' => '/dashboard/head-of-school/transcripts',
                         'created_at' => now(),
                         'read_at' => null,
                     ];
