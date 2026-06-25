@@ -53,25 +53,27 @@ const Children = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {children.map((child) => (
-            <Card key={child.id} className="hover:shadow-md transition-shadow">
+          {children.map((child) => {
+            const student = child.user || child
+            return (
+            <Card key={student.id} className="hover:shadow-md transition-shadow">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
                   <span className="text-lg font-bold text-primary-600">
-                    {child.name.charAt(0)}
+                    {student.name?.charAt(0) || '?'}
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-secondary-900 text-lg">{child.name}</h3>
+                  <h3 className="font-semibold text-secondary-900 text-lg">{student.name}</h3>
                   <p className="text-sm text-secondary-600">
-                    {child.class ? child.class.name : 'No class assigned'}
+                    {student.class?.name || child.class?.name || 'No class assigned'}
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  onClick={() => navigate(`/dashboard/child/${child.id}/attendance`)}
+                  onClick={() => navigate(`/dashboard/child/${student.id}/attendance`)}
                   className="p-3 bg-secondary-50 rounded-lg hover:bg-secondary-100 transition-colors text-left"
                 >
                   <Calendar className="w-5 h-5 text-primary-600 mb-1" />
@@ -79,7 +81,7 @@ const Children = () => {
                   <p className="text-xs text-secondary-600">View records</p>
                 </button>
                 <button
-                  onClick={() => navigate(`/dashboard/child/${child.id}/grades`)}
+                  onClick={() => navigate(`/dashboard/child/${student.id}/grades`)}
                   className="p-3 bg-secondary-50 rounded-lg hover:bg-secondary-100 transition-colors text-left"
                 >
                   <BookOpen className="w-5 h-5 text-accent-600 mb-1" />
@@ -87,7 +89,7 @@ const Children = () => {
                   <p className="text-xs text-secondary-600">View results</p>
                 </button>
                 <button
-                  onClick={() => navigate(`/dashboard/child/${child.id}/fees`)}
+                  onClick={() => navigate(`/dashboard/child/${student.id}/fees`)}
                   className="p-3 bg-secondary-50 rounded-lg hover:bg-secondary-100 transition-colors text-left col-span-2"
                 >
                   <DollarSign className="w-5 h-5 text-orange-600 mb-1" />
@@ -96,7 +98,8 @@ const Children = () => {
                 </button>
               </div>
             </Card>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
