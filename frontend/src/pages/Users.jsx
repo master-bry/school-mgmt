@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
+import ConfirmDialog from '../components/ConfirmDialog'
+import { required, email, minLength, validateForm } from '../lib/validation'
 import { Users as UsersIcon, Edit2, Trash2, Plus, X, Search, AlertCircle } from 'lucide-react'
 import axios from 'axios'
 
@@ -26,6 +28,7 @@ const UserForm = ({ user: editingUser, onClose, onSaved }) => {
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [errors, setErrors] = useState({})
 
   useEffect(() => {
     if (editingUser) {
@@ -44,6 +47,24 @@ const UserForm = ({ user: editingUser, onClose, onSaved }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const rules = {
+      name: { value: formData.name, rules: [required] },
+      email: { value: formData.email, rules: [required, email] },
+    }
+    if (!editingUser) {
+      rules.password = { value: formData.password, rules: [required, minLength(8)] }
+    }
+    if (formData.password && editingUser) {
+      rules.password = { value: formData.password, rules: [minLength(8)] }
+    }
+    const { isValid, errors: validationErrors } = validateForm(rules)
+    const extra = {}
+    if (formData.password && formData.password !== formData.password_confirmation) {
+      extra.password_confirmation = 'Passwords do not match'
+    }
+    const all = { ...validationErrors, ...extra }
+    setErrors(all)
+    if (!isValid || Object.keys(extra).length > 0) return
     setSaving(true)
     setError('')
     try {
@@ -96,22 +117,34 @@ const UserForm = ({ user: editingUser, onClose, onSaved }) => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input label="Full Name" type="text" value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })} required
-            placeholder="Enter full name" />
+          <div>
+            <Input label="Full Name *" type="text" value={formData.name}
+              onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setErrors(p => ({...p, name: undefined})) }} required
+              placeholder="Enter full name" />
+            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+          </div>
 
-          <Input label="Email" type="email" value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            required placeholder="Enter email address" />
+          <div>
+            <Input label="Email *" type="email" value={formData.email}
+              onChange={(e) => { setFormData({ ...formData, email: e.target.value }); setErrors(p => ({...p, email: undefined})) }}
+              required placeholder="Enter email address" />
+            {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+          </div>
 
-          <Input label={editingUser ? 'New Password (leave blank to keep)' : 'Password'}
-            type="password" value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            required={!editingUser} placeholder={editingUser ? 'Leave blank to keep current' : 'Min 8 characters'} />
+          <div>
+            <Input label={editingUser ? 'New Password (leave blank to keep)' : 'Password *'}
+              type="password" value={formData.password}
+              onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setErrors(p => ({...p, password: undefined})) }}
+              required={!editingUser} placeholder={editingUser ? 'Leave blank to keep current' : 'Min 8 characters'} />
+            {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
+          </div>
 
-          <Input label="Confirm Password" type="password" value={formData.password_confirmation}
-            onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
-            required={!editingUser} placeholder="Confirm password" />
+          <div>
+            <Input label="Confirm Password *" type="password" value={formData.password_confirmation}
+              onChange={(e) => { setFormData({ ...formData, password_confirmation: e.target.value }); setErrors(p => ({...p, password_confirmation: undefined})) }}
+              required={!editingUser} placeholder="Confirm password" />
+            {errors.password_confirmation && <p className="text-xs text-red-500 mt-1">{errors.password_confirmation}</p>}
+          </div>
 
           <div>
             <label className="label">Role</label>
@@ -164,8 +197,10 @@ const Users = () => {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     if (!user) return
@@ -190,14 +225,18 @@ const Users = () => {
     }
   }
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) return
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await axios.delete(`/api/admin/users/${id}`)
+      await axios.delete(`/api/admin/users/${deleteTarget.id}`)
+      setDeleteTarget(null)
       fetchUsers()
     } catch (err) {
       setError('Failed to delete user')
       console.error('Error deleting user:', err)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -307,7 +346,7 @@ const Users = () => {
                       title="Edit user">
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(u.id, u.name)}
+                    <button onClick={() => setDeleteTarget(u)}
                       className="p-2 text-secondary-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1"
                       title="Delete user">
                       <Trash2 className="w-4 h-4" />
@@ -335,6 +374,17 @@ const Users = () => {
           onSaved={() => { setShowForm(false); setEditingUser(null); fetchUsers() }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => { if (!o) setDeleteTarget(null) }}
+        title="Delete User"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel={deleting ? 'Deleting...' : 'Delete'}
+        variant="danger"
+        onConfirm={handleDelete}
+        loading={deleting}
+      />
     </div>
   )
 }

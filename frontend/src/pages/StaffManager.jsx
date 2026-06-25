@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { Users, Search, Plus, X, AlertCircle, CheckCircle, GraduationCap, BadgeCheck, Trash2, Edit, Eye, BookOpen, Wallet, FileText, User, ShieldAlert } from 'lucide-react'
 import axios from 'axios'
+import { required, email, phone, number, validateForm } from '../lib/validation'
 
 const STAFF_ROLES = ['teacher', 'academician', 'cashier', 'secretary']
 const EMPLOYMENT_TYPES = ['full-time', 'part-time', 'contract', 'intern']
@@ -39,16 +41,25 @@ const AddStaffModal = ({ apiPrefix, onClose, onSaved }) => {
   const [serverError, setServerError] = useState('')
 
   const validate = () => {
-    const errs = {}
-    if (!validateRequired(form.name)) errs.name = 'Name is required'
-    if (!validateRequired(form.email)) errs.email = 'Email is required'
-    else if (!validateEmail(form.email)) errs.email = 'Invalid email format'
-    if (!validateRequired(form.password)) errs.password = 'Password is required'
-    else if (form.password.length < 6) errs.password = 'Min 6 characters'
-    if (form.phone && !/^[\d\s\+\-\(\)]{7,20}$/.test(form.phone)) errs.phone = 'Invalid phone number'
-    if (form.years_experience && (isNaN(form.years_experience) || form.years_experience < 0)) errs.years_experience = 'Must be 0 or more'
-    setErrors(errs)
-    return Object.keys(errs).length === 0
+    const { errors: validationErrors, isValid } = validateForm({
+      name: { value: form.name, rules: [required] },
+      email: { value: form.email, rules: [required, email] },
+      password: { value: form.password, rules: [required] },
+    })
+    const extra = {}
+    if (form.password && form.password.length < 6) extra.password = 'Must be at least 6 characters'
+    if (form.phone) {
+      const phoneErr = phone(form.phone)
+      if (phoneErr) extra.phone = phoneErr
+    }
+    if (form.years_experience) {
+      const numErr = number(form.years_experience, 'Years experience')
+      if (numErr) extra.years_experience = numErr
+      else if (parseFloat(form.years_experience) < 0) extra.years_experience = 'Must be 0 or more'
+    }
+    const all = { ...validationErrors, ...extra }
+    setErrors(all)
+    return Object.keys(all).length === 0
   }
 
   const handleSubmit = async (e) => {
@@ -215,13 +226,18 @@ const EditStaffModal = ({ apiPrefix, staff, onClose, onSaved }) => {
   const [serverError, setServerError] = useState('')
 
   const validate = () => {
-    const errs = {}
-    if (!validateRequired(form.name)) errs.name = 'Name is required'
-    if (!validateRequired(form.email)) errs.email = 'Email is required'
-    else if (!validateEmail(form.email)) errs.email = 'Invalid email format'
-    if (form.phone && !/^[\d\s\+\-\(\)]{7,20}$/.test(form.phone)) errs.phone = 'Invalid phone number'
-    setErrors(errs)
-    return Object.keys(errs).length === 0
+    const { errors: validationErrors, isValid } = validateForm({
+      name: { value: form.name, rules: [required] },
+      email: { value: form.email, rules: [required, email] },
+    })
+    const extra = {}
+    if (form.phone) {
+      const phoneErr = phone(form.phone)
+      if (phoneErr) extra.phone = phoneErr
+    }
+    const all = { ...validationErrors, ...extra }
+    setErrors(all)
+    return Object.keys(all).length === 0
   }
 
   const handleSubmit = async (e) => {
@@ -511,8 +527,9 @@ const StaffManager = ({ apiPrefix, title, subtitle }) => {
   const [editTarget, setEditTarget] = useState(null)
   const [viewTarget, setViewTarget] = useState(null)
   const [statusTarget, setStatusTarget] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   const [toast, setToast] = useState(null)
-  const [staffStatuses, setStaffStatuses] = useState([])
 
   useEffect(() => { fetchStaff() }, [])
 
@@ -530,13 +547,19 @@ const StaffManager = ({ apiPrefix, title, subtitle }) => {
     finally { setLoading(false) }
   }
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`Delete staff member "${name}"?`)) return
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await axios.delete(`${apiPrefix}/staff/${id}`)
+      await axios.delete(`${apiPrefix}/staff/${deleteTarget.id}`)
+      setDeleteTarget(null)
       showToast('Staff deleted')
       fetchStaff()
-    } catch (e) { showToast('Failed to delete', 'error') }
+    } catch (e) {
+      showToast('Failed to delete', 'error')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const detail = (s) => s.teacher_detail || s.teacherDetail || {}
@@ -666,7 +689,7 @@ const StaffManager = ({ apiPrefix, title, subtitle }) => {
                           className="p-1.5 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(s.id, s.name)}
+                        <button onClick={() => setDeleteTarget(s)}
                           className="p-1.5 text-secondary-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -694,6 +717,17 @@ const StaffManager = ({ apiPrefix, title, subtitle }) => {
           onSaved={() => { setStatusTarget(null); fetchStaff(); showToast('Status updated') }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => { if (!o) setDeleteTarget(null) }}
+        title="Delete Staff"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel={deleting ? 'Deleting...' : 'Delete'}
+        variant="danger"
+        onConfirm={handleDelete}
+        loading={deleting}
+      />
     </div>
   )
 }

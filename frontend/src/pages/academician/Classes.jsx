@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { BookOpen, Plus, X, Search, AlertCircle, Edit2, Trash2, CheckCircle, BookMarked } from 'lucide-react'
 import axios from 'axios'
 
@@ -130,6 +131,7 @@ const AcademicianClasses = () => {
   const [showModal, setShowModal] = useState(false)
   const [editClass, setEditClass] = useState(null)
   const [deleting, setDeleting] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null)
   const [toast, setToast] = useState(null)
 
   useEffect(() => { fetchAll() }, [])
@@ -152,12 +154,13 @@ const AcademicianClasses = () => {
     finally { setLoading(false) }
   }
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this class?')) return
-    setDeleting(id)
+  const handleDelete = async () => {
+    if (!confirmDelete) return
+    setDeleting(confirmDelete)
     try {
-      await axios.delete(`/api/academician/classes/${id}`)
-      setClasses(prev => prev.filter(c => c.id !== id))
+      await axios.delete(`/api/academician/classes/${confirmDelete}`)
+      setConfirmDelete(null)
+      setClasses(prev => prev.filter(c => c.id !== confirmDelete))
       showToast('Class deleted')
     } catch (e) { showToast('Failed to delete', 'error') }
     finally { setDeleting(null) }
@@ -242,7 +245,7 @@ const AcademicianClasses = () => {
                         className="p-1.5 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors" title="Edit">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDelete(c.id)} disabled={deleting === c.id}
+                      <button onClick={() => setConfirmDelete(c.id)} disabled={deleting === c.id}
                         className="p-1.5 text-secondary-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -271,6 +274,17 @@ const AcademicianClasses = () => {
           subjects={subjects}
         />
       )}
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}
+        title="Delete Class"
+        message="Are you sure you want to delete this class?"
+        confirmLabel={deleting ? 'Deleting...' : 'Delete'}
+        variant="danger"
+        onConfirm={handleDelete}
+        loading={!!deleting}
+      />
     </div>
   )
 }

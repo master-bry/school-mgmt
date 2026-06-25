@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { Newspaper, Plus, Edit2, Trash2, X, AlertCircle } from 'lucide-react'
 import axios from 'axios'
 
@@ -118,6 +119,8 @@ const AcademicianBlogs = () => {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingBlog, setEditingBlog] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (!user || user.role !== 'academician') { navigate('/dashboard'); return }
@@ -136,13 +139,17 @@ const AcademicianBlogs = () => {
     }
   }
 
-  const handleDelete = async (id, title) => {
-    if (!window.confirm(`Delete "${title}"?`)) return
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await axios.delete(`/api/academician/blogs/${id}`)
+      await axios.delete(`/api/academician/blogs/${deleteTarget.id}`)
+      setDeleteTarget(null)
       fetchBlogs()
     } catch (err) {
       console.error(err)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -190,7 +197,7 @@ const AcademicianBlogs = () => {
                     className="p-1.5 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg">
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => handleDelete(blog.id, blog.title)}
+                  <button onClick={() => setDeleteTarget(blog)}
                     className="p-1.5 text-secondary-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -214,6 +221,17 @@ const AcademicianBlogs = () => {
           onSaved={() => { setShowForm(false); setEditingBlog(null); fetchBlogs() }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => { if (!o) setDeleteTarget(null) }}
+        title="Delete Blog"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"?`}
+        confirmLabel={deleting ? 'Deleting...' : 'Delete'}
+        variant="danger"
+        onConfirm={handleDelete}
+        loading={deleting}
+      />
     </div>
   )
 }

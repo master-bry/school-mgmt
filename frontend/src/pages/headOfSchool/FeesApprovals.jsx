@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import {
   DollarSign, CheckCircle, XCircle, Search,
   Clock, User, X, CreditCard, AlertTriangle, CheckSquare, Square
@@ -29,6 +30,7 @@ const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pend
   const [submitting, setSubmitting] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedIds, setSelectedIds] = useState(new Set())
+  const [confirmBulk, setConfirmBulk] = useState(null)
 
   const fetchFees = useCallback(async () => {
     setLoading(true)
@@ -78,8 +80,13 @@ const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pend
   const handleBulkAction = async (action) => {
     const ids = [...selectedIds]
     if (ids.length === 0) return
-    const label = action === 'approve' ? 'Approve' : 'Reject'
-    if (!window.confirm(`${label} ${ids.length} selected fee(s)?`)) return
+    setConfirmBulk({ action, ids })
+  }
+
+  const executeBulkAction = async () => {
+    if (!confirmBulk) return
+    const { action, ids } = confirmBulk
+    setConfirmBulk(null)
     setSubmitting(true)
     const endpoint = statusFilter === 'pending_hos' ? 'approve' : 'review'
     try {
@@ -310,6 +317,17 @@ const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pend
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!confirmBulk}
+        onOpenChange={(o) => { if (!o) setConfirmBulk(null) }}
+        title={confirmBulk?.action === 'approve' ? 'Approve Fees' : 'Reject Fees'}
+        message={`Are you sure you want to ${confirmBulk?.action} ${confirmBulk?.ids?.length || 0} selected fee(s)?`}
+        confirmLabel={submitting ? 'Processing...' : (confirmBulk?.action === 'approve' ? 'Approve All' : 'Reject All')}
+        variant={confirmBulk?.action === 'approve' ? 'warning' : 'danger'}
+        onConfirm={executeBulkAction}
+        loading={submitting}
+      />
     </div>
   )
 }

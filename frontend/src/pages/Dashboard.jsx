@@ -11,7 +11,7 @@ import {
   DollarSign, Library, ArrowRight, UserCheck, Clock, BarChart3,
   Settings, School, Award, ShieldCheck, Building2, FileText, CreditCard,
   ClipboardCheck, BookMarked, Megaphone, Server, Key, Database, Activity,
-  AlertCircle, Plus, X, UserPlus, Mail, Globe, Lock, BookCheck, PieChart,
+  AlertCircle, Plus, X, UserPlus, Mail, Globe, Lock, BookCheck, PieChart, XCircle,
   Wallet, FileSignature, MapPin, Monitor, Newspaper, FileSpreadsheet,
   Receipt, AlertTriangle, CalendarCheck, UserPlus as UserPlusIcon,
   FolderOpen

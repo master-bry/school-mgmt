@@ -4,13 +4,16 @@ import { useNavigate } from 'react-router-dom'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { BookOpen, Edit2, Trash2, Plus, X, Users, School, User, MapPin, Hash } from 'lucide-react'
 import axios from 'axios'
+import { required, min, maxLength, validateForm } from '../lib/validation'
 
 const ClassForm = ({ cls: editingClass, teachers, onClose, onSaved }) => {
   const [formData, setFormData] = useState({
     name: '', section: '', teacher_id: '', capacity: 40, room_number: '',
   })
+  const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -27,6 +30,13 @@ const ClassForm = ({ cls: editingClass, teachers, onClose, onSaved }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const { errors: validationErrors, isValid } = validateForm({
+      name: { value: formData.name, rules: [required] },
+      capacity: { value: formData.capacity, rules: [min(1)] },
+      room_number: { value: formData.room_number, rules: [maxLength(20)] },
+    })
+    setErrors(validationErrors)
+    if (!isValid) return
     setSaving(true)
     try {
       if (editingClass) {
@@ -60,9 +70,12 @@ const ClassForm = ({ cls: editingClass, teachers, onClose, onSaved }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input label="Class Name" type="text" value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required placeholder="e.g. Grade 10" icon={BookOpen} />
+          <div>
+            <Input label="Class Name *" type="text" value={formData.name}
+              onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setErrors(p => ({...p, name: undefined})) }}
+              required placeholder="e.g. Grade 10" icon={BookOpen} />
+            {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+          </div>
 
           <Input label="Section" type="text" value={formData.section}
             onChange={(e) => setFormData({ ...formData, section: e.target.value })}
@@ -82,12 +95,18 @@ const ClassForm = ({ cls: editingClass, teachers, onClose, onSaved }) => {
             </div>
           </div>
 
-          <Input label="Capacity" type="number" min="1" value={formData.capacity}
-            onChange={(e) => setFormData({ ...formData, capacity: e.target.value })} icon={Users} />
+          <div>
+            <Input label="Capacity *" type="number" min="1" value={formData.capacity}
+              onChange={(e) => { setFormData({ ...formData, capacity: e.target.value }); setErrors(p => ({...p, capacity: undefined})) }} icon={Users} />
+            {errors.capacity && <p className="text-xs text-red-500 mt-1">{errors.capacity}</p>}
+          </div>
 
-          <Input label="Room Number" type="text" value={formData.room_number}
-            onChange={(e) => setFormData({ ...formData, room_number: e.target.value })}
-            placeholder="e.g. 201" icon={MapPin} />
+          <div>
+            <Input label="Room Number" type="text" value={formData.room_number}
+              onChange={(e) => { setFormData({ ...formData, room_number: e.target.value }); setErrors(p => ({...p, room_number: undefined})) }}
+              placeholder="e.g. 201" icon={MapPin} />
+            {errors.room_number && <p className="text-xs text-red-500 mt-1">{errors.room_number}</p>}
+          </div>
 
           <div className="flex space-x-3 pt-2">
             <Button type="submit" disabled={saving} className="flex-1">
@@ -109,6 +128,8 @@ const Classes = () => {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingClass, setEditingClass] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   const isAdmin = user?.role === 'admin'
 
   useEffect(() => {
@@ -138,13 +159,17 @@ const Classes = () => {
     }
   }
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await axios.delete(`/api/admin/classes/${id}`)
+      await axios.delete(`/api/admin/classes/${deleteTarget.id}`)
+      setDeleteTarget(null)
       fetchData()
     } catch (error) {
       console.error('Error deleting class:', error)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -204,7 +229,7 @@ const Classes = () => {
                       className="p-1.5 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
-                    <button onClick={() => handleDelete(cls.id, cls.name)}
+                    <button onClick={() => setDeleteTarget(cls)}
                       className="p-1.5 text-secondary-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -242,6 +267,17 @@ const Classes = () => {
           onSaved={() => { setShowForm(false); setEditingClass(null); fetchData() }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => { if (!o) setDeleteTarget(null) }}
+        title="Delete Class"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel={deleting ? 'Deleting...' : 'Delete'}
+        variant="danger"
+        onConfirm={handleDelete}
+        loading={deleting}
+      />
     </div>
   )
 }

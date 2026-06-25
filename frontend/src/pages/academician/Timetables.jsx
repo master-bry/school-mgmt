@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { Calendar, Plus, X, Clock, MapPin, Trash2, Edit2, AlertCircle, CheckCircle, Layers, Printer } from 'lucide-react'
 import axios from 'axios'
 
@@ -175,6 +176,8 @@ const Timetables = () => {
   const [editEntry, setEditEntry] = useState(null)
   const [generating, setGenerating] = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null)
+  const [confirmGenerate, setConfirmGenerate] = useState(false)
   const [toast, setToast] = useState(null)
 
   useEffect(() => { fetchAll() }, [])
@@ -214,11 +217,12 @@ const Timetables = () => {
     return dayEntries.filter(e => e.start_time?.slice(0, 5) === start && e.end_time?.slice(0, 5) === end)
   }
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this entry?')) return
-    setDeleting(id)
+  const handleDelete = async () => {
+    if (!confirmDelete) return
+    setDeleting(confirmDelete)
     try {
-      await axios.delete(`/api/academician/timetables/${id}`)
+      await axios.delete(`/api/academician/timetables/${confirmDelete}`)
+      setConfirmDelete(null)
       await fetchTimetable()
       showToast('Entry deleted')
     } catch { showToast('Failed to delete', 'error') }
@@ -227,7 +231,7 @@ const Timetables = () => {
 
   const handleGenerate = async () => {
     if (!selectedClass) return
-    if (!window.confirm('Generate full weekly timetable for this class? This will replace any existing timetable for this class.')) return
+    setConfirmGenerate(false)
     setGenerating(true)
     try {
       await axios.post('/api/academician/timetables/generate', { class_id: selectedClass })
@@ -268,7 +272,7 @@ const Timetables = () => {
           <Button variant="secondary" disabled={!selectedClass} onClick={() => window.print()}>
             <Printer className="w-4 h-4 mr-2" />Download
           </Button>
-          <Button disabled={!selectedClass || generating} onClick={handleGenerate}>
+          <Button disabled={!selectedClass || generating} onClick={() => setConfirmGenerate(true)}>
             <Layers className={`w-4 h-4 mr-2 ${generating ? 'animate-spin' : ''}`} />{generating ? 'Generating...' : 'Generate Full Week'}
           </Button>
           <Button variant="secondary" disabled={!selectedClass} onClick={() => setShowModal(true)}>
@@ -349,7 +353,7 @@ const Timetables = () => {
                                         className="p-0.5 bg-white/80 rounded hover:bg-white text-secondary-400 hover:text-primary-600">
                                         <Edit2 className="w-3 h-3" />
                                       </button>
-                                      <button onClick={() => handleDelete(e.id)} disabled={deleting === e.id}
+                                      <button onClick={() => setConfirmDelete(e.id)} disabled={deleting === e.id}
                                         className="p-0.5 bg-white/80 rounded hover:bg-white text-secondary-400 hover:text-red-600">
                                         <Trash2 className="w-3 h-3" />
                                       </button>
@@ -400,6 +404,27 @@ const Timetables = () => {
           entry={editEntry}
         /></div>
       )}
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}
+        title="Delete Entry"
+        message="Are you sure you want to delete this timetable entry?"
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={handleDelete}
+      />
+
+      <ConfirmDialog
+        open={confirmGenerate}
+        onOpenChange={setConfirmGenerate}
+        title="Generate Timetable"
+        message="Generate full weekly timetable for this class? This will replace any existing timetable for this class."
+        confirmLabel={generating ? 'Generating...' : 'Generate'}
+        variant="warning"
+        onConfirm={handleGenerate}
+        loading={generating}
+      />
     </div>
   )
 }

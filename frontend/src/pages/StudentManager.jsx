@@ -4,6 +4,7 @@ import Button from '../components/Button'
 import Input from '../components/Input'
 import { Users, Search, Plus, X, AlertCircle, CheckCircle, Edit, Eye, User, Download, Upload } from 'lucide-react'
 import axios from 'axios'
+import { required, email, phone, validateForm } from '../lib/validation'
 
 const STUDENT_STATUSES = ['active', 'inactive', 'suspended', 'probation', 'graduated', 'transferred', 'withdrawn', 'expelled', 'on_leave']
 
@@ -44,19 +45,30 @@ const AddStudentModal = ({ apiPrefix, onClose, onSaved }) => {
   }, [])
 
   const validate = () => {
-    const errs = {}
-    if (!validateRequired(form.first_name)) errs.first_name = 'First name is required'
-    if (!validateRequired(form.last_name)) errs.last_name = 'Last name is required'
-    if (!validateRequired(form.email)) errs.email = 'Email is required'
-    else if (!validateEmail(form.email)) errs.email = 'Invalid email format'
-    if (!validateRequired(form.password)) errs.password = 'Password is required'
-    else if (form.password.length < 6) errs.password = 'Min 6 characters'
-    if (form.phone && !/^[\d\s\+\-\(\)]{7,20}$/.test(form.phone)) errs.phone = 'Invalid phone number'
-    if (form.parent_phone && !/^[\d\s\+\-\(\)]{7,20}$/.test(form.parent_phone)) errs.parent_phone = 'Invalid phone number'
-    if (form.guardian_phone && !/^[\d\s\+\-\(\)]{7,20}$/.test(form.guardian_phone)) errs.guardian_phone = 'Invalid phone number'
-    if (form.emergency_contact_phone && !/^[\d\s\+\-\(\)]{7,20}$/.test(form.emergency_contact_phone)) errs.emergency_contact_phone = 'Invalid phone number'
-    setErrors(errs)
-    return Object.keys(errs).length === 0
+    const { errors: validationErrors, isValid } = validateForm({
+      first_name: { value: form.first_name, rules: [required] },
+      last_name: { value: form.last_name, rules: [required] },
+      email: { value: form.email, rules: [required, email] },
+      password: { value: form.password, rules: [required] },
+    })
+    const extra = {}
+    if (form.password && form.password.length < 6) extra.password = 'Must be at least 6 characters'
+    if (!form.class_id) extra.class_id = 'Class is required'
+    const phoneChecks = [
+      { key: 'phone', val: form.phone },
+      { key: 'parent_phone', val: form.parent_phone },
+      { key: 'guardian_phone', val: form.guardian_phone },
+      { key: 'emergency_contact_phone', val: form.emergency_contact_phone },
+    ]
+    for (const { key, val } of phoneChecks) {
+      if (val) {
+        const err = phone(val)
+        if (err) extra[key] = err
+      }
+    }
+    const all = { ...validationErrors, ...extra }
+    setErrors(all)
+    return Object.keys(all).length === 0
   }
 
   const handleSubmit = async (e) => {
@@ -146,10 +158,11 @@ const AddStudentModal = ({ apiPrefix, onClose, onSaved }) => {
               <Input label="Enrollment Date" type="date" value={form.enrollment_date} onChange={e => update('enrollment_date', e.target.value)} />
               <div>
                 <label className="label">Class *</label>
-                <select className="input" value={form.class_id} onChange={e => update('class_id', e.target.value)}>
+                <select className="input" value={form.class_id} onChange={e => { update('class_id', e.target.value); setErrors(p => ({...p, class_id: undefined})) }}>
                   <option value="">Select Class</option>
                   {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
+                {errors.class_id && <p className="text-xs text-red-500 mt-0.5">{errors.class_id}</p>}
               </div>
               <Input label="Grade" value={form.grade} onChange={e => update('grade', e.target.value)} placeholder="e.g. Grade 10" />
             </div>
@@ -255,14 +268,19 @@ const EditStudentModal = ({ apiPrefix, student, onClose, onSaved }) => {
   }, [])
 
   const validate = () => {
-    const errs = {}
-    if (!validateRequired(form.first_name)) errs.first_name = 'First name is required'
-    if (!validateRequired(form.last_name)) errs.last_name = 'Last name is required'
-    if (!validateRequired(form.email)) errs.email = 'Email is required'
-    else if (!validateEmail(form.email)) errs.email = 'Invalid email format'
-    if (form.phone && !/^[\d\s\+\-\(\)]{7,20}$/.test(form.phone)) errs.phone = 'Invalid phone number'
-    setErrors(errs)
-    return Object.keys(errs).length === 0
+    const { errors: validationErrors, isValid } = validateForm({
+      first_name: { value: form.first_name, rules: [required] },
+      last_name: { value: form.last_name, rules: [required] },
+      email: { value: form.email, rules: [required, email] },
+    })
+    const extra = {}
+    if (form.phone) {
+      const err = phone(form.phone)
+      if (err) extra.phone = err
+    }
+    const all = { ...validationErrors, ...extra }
+    setErrors(all)
+    return Object.keys(all).length === 0
   }
 
   const handleSubmit = async (e) => {

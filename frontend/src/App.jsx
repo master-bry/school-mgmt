@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ToastProvider } from './components/Toast'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
@@ -58,6 +59,7 @@ import SuperAdminAnalytics from './pages/superAdmin/Analytics'
 
 function App() {
   return (
+    <ToastProvider>
     <AuthProvider>
       <Router>
         <Routes>
@@ -129,6 +131,7 @@ function App() {
         </Routes>
       </Router>
     </AuthProvider>
+  </ToastProvider>
   )
 }
 

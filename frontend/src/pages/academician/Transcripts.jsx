@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { FileText, Plus, X, AlertCircle, CheckCircle, Send, Printer, Trash2, Eye, BookOpen, Layers } from 'lucide-react'
 import axios from 'axios'
 
@@ -19,6 +20,7 @@ const Transcripts = () => {
   const [toast, setToast] = useState(null)
   const [actionLoading, setActionLoading] = useState(null)
   const [viewTranscript, setViewTranscript] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null)
 
   useEffect(() => { fetchTranscripts(); fetchClasses() }, [])
 
@@ -123,8 +125,10 @@ const Transcripts = () => {
     finally { setActionLoading(null) }
   }
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this draft transcript?')) return
+  const handleDelete = async () => {
+    if (!confirmDelete) return
+    const id = confirmDelete
+    setConfirmDelete(null)
     setActionLoading(id)
     try {
       await axios.delete(`/api/academician/transcripts/${id}`)
@@ -299,7 +303,7 @@ const Transcripts = () => {
                               className="p-1.5 text-secondary-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Submit for Approval">
                               <Send className="w-4 h-4" />
                             </button>
-                            <button onClick={() => handleDelete(t.id)} disabled={actionLoading === t.id}
+                            <button onClick={() => setConfirmDelete(t.id)} disabled={actionLoading === t.id}
                               className="p-1.5 text-secondary-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -499,6 +503,16 @@ const Transcripts = () => {
           </Card>
         </div>
       )}
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}
+        title="Delete Transcript"
+        message="Are you sure you want to delete this draft transcript?"
+        confirmLabel={actionLoading ? 'Deleting...' : 'Delete'}
+        variant="danger"
+        onConfirm={handleDelete}
+        loading={!!actionLoading}
+      />
     </div>
   )
 }

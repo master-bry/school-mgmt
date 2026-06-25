@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { BookOpen, Plus, X, Search, FileText, FileSpreadsheet, File, AlertCircle, Edit2, Trash2, CheckCircle } from 'lucide-react'
 import axios from 'axios'
 
@@ -136,6 +137,7 @@ const Books = () => {
   const [showModal, setShowModal] = useState(false)
   const [editBook, setEditBook] = useState(null)
   const [deleting, setDeleting] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null)
   const [toast, setToast] = useState(null)
 
   useEffect(() => { fetchBooks() }, [])
@@ -154,12 +156,13 @@ const Books = () => {
     finally { setLoading(false) }
   }
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this book?')) return
-    setDeleting(id)
+  const handleDelete = async () => {
+    if (!confirmDelete) return
+    setDeleting(confirmDelete)
     try {
-      await axios.delete(`/api/academician/books/${id}`)
-      setBooks(prev => prev.filter(b => b.id !== id))
+      await axios.delete(`/api/academician/books/${confirmDelete}`)
+      setConfirmDelete(null)
+      setBooks(prev => prev.filter(b => b.id !== confirmDelete))
       showToast('Book deleted')
     } catch (e) { showToast('Failed to delete', 'error') }
     finally { setDeleting(null) }
@@ -254,7 +257,7 @@ const Books = () => {
                           className="p-1.5 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors" title="Edit">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(b.id)} disabled={deleting === b.id}
+                        <button onClick={() => setConfirmDelete(b.id)} disabled={deleting === b.id}
                           className="p-1.5 text-secondary-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -283,6 +286,17 @@ const Books = () => {
           book={editBook}
         />
       )}
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => { if (!o) setConfirmDelete(null) }}
+        title="Delete Book"
+        message="Are you sure you want to delete this book?"
+        confirmLabel={deleting ? 'Deleting...' : 'Delete'}
+        variant="danger"
+        onConfirm={handleDelete}
+        loading={!!deleting}
+      />
     </div>
   )
 }

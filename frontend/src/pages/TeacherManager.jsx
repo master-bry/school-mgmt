@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { Users, Search, Plus, X, AlertCircle, CheckCircle, GraduationCap, DollarSign, BadgeCheck, Trash2, Edit } from 'lucide-react'
 import axios from 'axios'
 
@@ -202,6 +203,8 @@ const TeacherManager = ({ apiPrefix, title, subtitle }) => {
   const [search, setSearch] = useState('')
   const [showAdd, setShowAdd] = useState(false)
   const [editTarget, setEditTarget] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   const [toast, setToast] = useState(null)
 
   useEffect(() => { fetchTeachers() }, [])
@@ -220,13 +223,16 @@ const TeacherManager = ({ apiPrefix, title, subtitle }) => {
     finally { setLoading(false) }
   }
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`Delete teacher "${name}"?`)) return
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await axios.delete(`${apiPrefix}/teachers/${id}`)
+      await axios.delete(`${apiPrefix}/teachers/${deleteTarget.id}`)
+      setDeleteTarget(null)
       showToast('Teacher deleted')
       fetchTeachers()
     } catch (e) { showToast('Failed to delete', 'error') }
+    finally { setDeleting(false) }
   }
 
   const handleApproveSalary = async (id) => {
@@ -341,7 +347,7 @@ const TeacherManager = ({ apiPrefix, title, subtitle }) => {
                           className="p-1.5 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(t.id, t.name)}
+                        <button onClick={() => setDeleteTarget(t)}
                           className="p-1.5 text-secondary-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -360,6 +366,17 @@ const TeacherManager = ({ apiPrefix, title, subtitle }) => {
 
       {showAdd && <AddTeacherModal apiPrefix={apiPrefix} onClose={() => setShowAdd(false)} onSaved={() => { setShowAdd(false); fetchTeachers(); showToast('Teacher created') }} />}
       {editTarget && <EditTeacherModal apiPrefix={apiPrefix} teacher={editTarget} onClose={() => setEditTarget(null)} onSaved={() => { setEditTarget(null); fetchTeachers(); showToast('Teacher updated') }} />}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => { if (!o) setDeleteTarget(null) }}
+        title="Delete Teacher"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel={deleting ? 'Deleting...' : 'Delete'}
+        variant="danger"
+        onConfirm={handleDelete}
+        loading={deleting}
+      />
     </div>
   )
 }
