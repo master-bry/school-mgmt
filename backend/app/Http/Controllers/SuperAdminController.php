@@ -116,30 +116,6 @@ class SuperAdminController extends Controller
         return response()->json($school->fresh());
     }
 
-    public function storeSchoolAdmin(Request $request, $id)
-    {
-        $school = School::findOrFail($id);
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'phone' => 'nullable|string|max:20',
-        ]);
-
-        $user = User::create([
-            'school_id' => $school->id,
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'admin',
-            'phone' => $request->phone,
-            'is_active' => true,
-        ]);
-
-        return response()->json($user, 201);
-    }
-
     public function suspendSchool($id)
     {
         $school = School::findOrFail($id);
@@ -150,6 +126,64 @@ class SuperAdminController extends Controller
         User::where('school_id', $id)->update(['is_active' => false]);
 
         return response()->json(['message' => 'School suspended successfully']);
+    }
+
+    // ─── School User CRUD ─────────────────────────────────────────
+
+    public function storeSchoolUser(Request $request, $id)
+    {
+        $school = School::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'role' => 'required|in:admin,teacher,student,parent,academician,cashier,head_of_school,assistant_head,secretary',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $user = User::create([
+            'school_id' => $school->id,
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
+            'phone' => $request->phone,
+            'is_active' => true,
+        ]);
+
+        return response()->json($user, 201);
+    }
+
+    public function updateSchoolUser(Request $request, $schoolId, $userId)
+    {
+        $school = School::findOrFail($schoolId);
+        $user = User::where('school_id', $school->id)->findOrFail($userId);
+
+        $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|max:255|unique:users,email,'.$userId,
+            'password' => 'sometimes|string|min:8',
+            'role' => 'sometimes|in:admin,teacher,student,parent,academician,cashier,head_of_school,assistant_head,secretary',
+            'phone' => 'nullable|string|max:20',
+            'is_active' => 'sometimes|boolean',
+        ]);
+
+        $data = $request->only(['name', 'email', 'role', 'phone', 'is_active']);
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
+        return response()->json($user->fresh());
+    }
+
+    public function deleteSchoolUser($schoolId, $userId)
+    {
+        $school = School::findOrFail($schoolId);
+        $user = User::where('school_id', $school->id)->findOrFail($userId);
+        $user->delete();
+        return response()->json(null, 204);
     }
 
     // ─── Billing & Subscription ─────────────────────────────────────

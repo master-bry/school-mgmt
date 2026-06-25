@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
-import { Building2, ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, CreditCard, Users, ShieldAlert, X, CheckCircle, AlertCircle, XCircle, Clock, ToggleLeft, ToggleRight, ShieldCheck } from 'lucide-react'
+import { Building2, ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, CreditCard, Users, ShieldAlert, X, CheckCircle, AlertCircle, XCircle, Clock, ToggleLeft, ToggleRight, ShieldCheck, Plus, Edit2, Trash2 } from 'lucide-react'
 import axios from 'axios'
 
 const statusIcon = { active: CheckCircle, trial: Clock, expired: XCircle, suspended: ShieldAlert, cancelled: XCircle }
@@ -23,6 +23,9 @@ const SchoolDetail = () => {
   const [featuresLoading, setFeaturesLoading] = useState(true)
   const [showEdit, setShowEdit] = useState(false)
   const [showSubEdit, setShowSubEdit] = useState(false)
+  const [showUserModal, setShowUserModal] = useState(false)
+  const [editingUser, setEditingUser] = useState(null)
+  const [userForm, setUserForm] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [editForm, setEditForm] = useState({})
   const [subForm, setSubForm] = useState({})
@@ -70,6 +73,42 @@ const SchoolDetail = () => {
     if (!confirm('Suspend this school and all its users?')) return
     try {
       await axios.post(`/api/super-admin/schools/${id}/suspend`)
+      fetchSchool()
+    } catch (err) { console.error(err) }
+  }
+
+  const openAddUser = () => {
+    setEditingUser(null)
+    setUserForm({ name: '', email: '', password: '', role: 'teacher', phone: '' })
+    setShowUserModal(true)
+  }
+
+  const openEditUser = (u) => {
+    setEditingUser(u)
+    setUserForm({ name: u.name, email: u.email, role: u.role, phone: u.phone || '', password: '' })
+    setShowUserModal(true)
+  }
+
+  const handleUserSubmit = async (e) => {
+    e.preventDefault(); setSubmitting(true)
+    try {
+      if (editingUser) {
+        const payload = { ...userForm }
+        if (!payload.password) delete payload.password
+        await axios.put(`/api/super-admin/schools/${id}/users/${editingUser.id}`, payload)
+      } else {
+        await axios.post(`/api/super-admin/schools/${id}/users`, userForm)
+      }
+      setShowUserModal(false)
+      fetchSchool()
+    } catch (err) { console.error(err) }
+    finally { setSubmitting(false) }
+  }
+
+  const handleDeleteUser = async (u) => {
+    if (!confirm(`Delete user "${u.name}" (${u.email})?`)) return
+    try {
+      await axios.delete(`/api/super-admin/schools/${id}/users/${u.id}`)
       fetchSchool()
     } catch (err) { console.error(err) }
   }
@@ -161,7 +200,10 @@ const SchoolDetail = () => {
           </Card>
 
           <Card>
-            <h2 className="font-semibold text-secondary-900 mb-4">Users</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-secondary-900">Users</h2>
+              <Button variant="primary" size="sm" onClick={openAddUser}><Plus className="w-3.5 h-3.5 mr-1" /> Add User</Button>
+            </div>
             {school.users?.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -171,6 +213,7 @@ const SchoolDetail = () => {
                       <th className="pb-2 font-medium">Email</th>
                       <th className="pb-2 font-medium">Role</th>
                       <th className="pb-2 font-medium">Status</th>
+                      <th className="pb-2 font-medium w-20">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -183,6 +226,12 @@ const SchoolDetail = () => {
                           <span className={`text-xs ${u.is_active ? 'text-emerald-600' : 'text-red-500'}`}>
                             {u.is_active ? 'Active' : 'Inactive'}
                           </span>
+                        </td>
+                        <td className="py-2">
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => openEditUser(u)} className="p-1 hover:bg-secondary-100 rounded text-secondary-400 hover:text-secondary-700"><Edit2 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => handleDeleteUser(u)} className="p-1 hover:bg-red-50 rounded text-secondary-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </div>
                         </td>
                       </tr>
                     ))}
