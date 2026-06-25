@@ -80,6 +80,7 @@ class FeeController extends Controller
             ->firstOrFail();
 
         $fees = $child->fees()
+            ->with('student')
             ->where('approval_status', 'approved')
             ->orderBy('due_date', 'desc')
             ->get();

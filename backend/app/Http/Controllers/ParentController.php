@@ -73,7 +73,7 @@ class ParentController extends Controller
     {
         $child = User::where('id', $id)->where('parent_id', auth()->id())->firstOrFail();
         return response()->json(
-            $child->attendances()->with('class')->orderBy('date', 'desc')->paginate(30)
+            $child->attendances()->with('class', 'student')->orderBy('date', 'desc')->paginate(30)
         );
     }
 
@@ -81,7 +81,7 @@ class ParentController extends Controller
     {
         $child = User::where('id', $id)->where('parent_id', auth()->id())->firstOrFail();
         return response()->json(
-            $child->grades()->with('exam.subject', 'exam.class')->orderBy('created_at', 'desc')->get()
+            $child->grades()->with('exam.subject', 'exam.class', 'student')->orderBy('created_at', 'desc')->get()
         );
     }
 
