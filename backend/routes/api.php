@@ -288,7 +288,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ────── Shared routes ──────
-    Route::apiResource('fees', FeeController::class)->except(['create', 'edit'])->middleware('role:admin,head_of_school,assistant_head,cashier');
+    Route::apiResource('fees', FeeController::class)->except(['create', 'edit'])->middleware('role:head_of_school,assistant_head,cashier');
     Route::apiResource('books', LibraryController::class)->except(['create', 'edit']);
     Route::post('books/{book}/issue', [LibraryController::class, 'issue']);
     Route::post('books/{book}/return', [LibraryController::class, 'return']);

@@ -61,8 +61,6 @@ const Layout = ({ children }) => {
       { icon: Users, labelKey: 'nav.users', path: '/dashboard/users' },
       { icon: Users, labelKey: 'nav.parents', path: '/dashboard/admin/parents' },
       { icon: BookOpen, labelKey: 'nav.classes', path: '/dashboard/classes' },
-      { icon: DollarSign, labelKey: 'nav.fees', path: '/dashboard/fees' },
-      { icon: Library, labelKey: 'nav.library', path: '/dashboard/library' },
     ],
     academician: [
       { icon: LayoutDashboard, labelKey: 'nav.dashboard', path: '/dashboard' },
