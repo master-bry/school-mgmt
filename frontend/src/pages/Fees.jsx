@@ -5,6 +5,7 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
 import { DollarSign, Plus, X, Filter, CreditCard, CheckCircle, Clock, AlertCircle } from 'lucide-react'
+import ConfirmDialog from '../components/ConfirmDialog'
 import axios from 'axios'
 
 const Fees = () => {
@@ -17,6 +18,7 @@ const Fees = () => {
   const [showModal, setShowModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedFee, setSelectedFee] = useState(null)
+  const [confirmAction, setConfirmAction] = useState(null)
   const [formData, setFormData] = useState({
     student_id: '', fee_type: '', amount: '', due_date: '',
   })
@@ -52,8 +54,8 @@ const Fees = () => {
     }
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleCreateFee = async () => {
+    setConfirmAction(null)
     try {
       await axios.post('/api/fees', formData)
       setShowModal(false)
@@ -64,8 +66,8 @@ const Fees = () => {
     }
   }
 
-  const handlePayment = async (e) => {
-    e.preventDefault()
+  const handleRecordPayment = async () => {
+    setConfirmAction(null)
     if (!selectedFee) return
     try {
       await axios.put(`/api/fees/${selectedFee.id}`, paymentData)
@@ -171,7 +173,7 @@ const Fees = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); setConfirmAction('create') }} className="space-y-4">
               <div>
                 <label className="label">Student</label>
                 <select className="input" value={formData.student_id}
@@ -210,7 +212,7 @@ const Fees = () => {
               <p className="text-sm text-secondary-600">{selectedFee.fee_type} - {selectedFee.student?.name}</p>
               <p className="text-lg font-bold text-secondary-900">${remainingAmount(selectedFee)} remaining</p>
             </div>
-            <form onSubmit={handlePayment} className="space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); setConfirmAction('payment') }} className="space-y-4">
               <Input label="Amount Paid ($)" type="number" min="0" step="0.01" value={paymentData.paid_amount}
                 onChange={(e) => setPaymentData({ ...paymentData, paid_amount: e.target.value })} required />
               <Input label="Payment Date" type="date" value={paymentData.paid_date}
@@ -235,6 +237,22 @@ const Fees = () => {
           </Card>
         </div>
       )}
+      <ConfirmDialog
+        open={confirmAction === 'create'}
+        onOpenChange={(o) => { if (!o) setConfirmAction(null) }}
+        title="Create Fee"
+        message="Are you sure you want to create this fee?"
+        confirmLabel="Create"
+        onConfirm={handleCreateFee}
+      />
+      <ConfirmDialog
+        open={confirmAction === 'payment'}
+        onOpenChange={(o) => { if (!o) setConfirmAction(null) }}
+        title="Record Payment"
+        message="Are you sure you want to record this payment?"
+        confirmLabel="Record"
+        onConfirm={handleRecordPayment}
+      />
     </div>
   )
 }

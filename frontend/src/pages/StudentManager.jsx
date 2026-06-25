@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { Users, Search, Plus, X, AlertCircle, CheckCircle, Edit, Eye, User, Download, Upload } from 'lucide-react'
 import axios from 'axios'
 import { required, email, phone, validateForm } from '../lib/validation'
@@ -39,6 +40,7 @@ const AddStudentModal = ({ apiPrefix, onClose, onSaved }) => {
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
   const [serverError, setServerError] = useState('')
+  const [confirmSave, setConfirmSave] = useState(false)
 
   useEffect(() => {
     axios.get(`${apiPrefix}/students/classes`).then(({ data }) => setClasses(Array.isArray(data) ? data : [])).catch(() => {})
@@ -72,6 +74,7 @@ const AddStudentModal = ({ apiPrefix, onClose, onSaved }) => {
   }
 
   const handleSubmit = async (e) => {
+    setConfirmSave(false)
     e.preventDefault()
     if (!validate()) return
     setSaving(true)
@@ -102,7 +105,7 @@ const AddStudentModal = ({ apiPrefix, onClose, onSaved }) => {
             <AlertCircle className="w-4 h-4" /><span>{serverError}</span>
           </div>
         )}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); setConfirmSave(true) }} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Input label="First Name *" value={form.first_name} onChange={e => update('first_name', e.target.value)} required />
@@ -221,6 +224,15 @@ const AddStudentModal = ({ apiPrefix, onClose, onSaved }) => {
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
           </div>
         </form>
+        <ConfirmDialog
+          open={confirmSave}
+          onOpenChange={(o) => { if (!o) setConfirmSave(false) }}
+          title="Add Student"
+          message="Are you sure you want to create this student account?"
+          confirmLabel={saving ? 'Saving...' : 'Confirm'}
+          onConfirm={handleSubmit}
+          loading={saving}
+        />
       </Card>
     </div>
   )
@@ -262,6 +274,7 @@ const EditStudentModal = ({ apiPrefix, student, onClose, onSaved }) => {
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
   const [serverError, setServerError] = useState('')
+  const [confirmSave, setConfirmSave] = useState(false)
 
   useEffect(() => {
     axios.get(`${apiPrefix}/students/classes`).then(({ data }) => setClasses(Array.isArray(data) ? data : [])).catch(() => {})
@@ -284,6 +297,7 @@ const EditStudentModal = ({ apiPrefix, student, onClose, onSaved }) => {
   }
 
   const handleSubmit = async (e) => {
+    setConfirmSave(false)
     e.preventDefault()
     if (!validate()) return
     setSaving(true)
@@ -311,7 +325,7 @@ const EditStudentModal = ({ apiPrefix, student, onClose, onSaved }) => {
             <AlertCircle className="w-4 h-4" /><span>{serverError}</span>
           </div>
         )}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); setConfirmSave(true) }} className="space-y-4">
           <div className="flex items-center space-x-4 mb-2">
             <label className="flex items-center space-x-2 cursor-pointer">
               <input type="checkbox" checked={form.is_active} onChange={e => update('is_active', e.target.checked)} className="w-4 h-4 rounded border-secondary-300 text-primary-600" />
@@ -423,6 +437,15 @@ const EditStudentModal = ({ apiPrefix, student, onClose, onSaved }) => {
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
           </div>
         </form>
+        <ConfirmDialog
+          open={confirmSave}
+          onOpenChange={(o) => { if (!o) setConfirmSave(false) }}
+          title="Update Student"
+          message="Are you sure you want to save these changes?"
+          confirmLabel={saving ? 'Saving...' : 'Confirm'}
+          onConfirm={handleSubmit}
+          loading={saving}
+        />
       </Card>
     </div>
   )
@@ -529,8 +552,10 @@ const ChangeStatusModal = ({ apiPrefix, student, statuses, onClose, onSaved }) =
   const [status, setStatus] = useState(student.status || 'active')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [confirmSave, setConfirmSave] = useState(false)
 
   const handleSubmit = async (e) => {
+    setConfirmSave(false)
     e.preventDefault()
     setSaving(true)
     setError('')
@@ -555,7 +580,7 @@ const ChangeStatusModal = ({ apiPrefix, student, statuses, onClose, onSaved }) =
             <AlertCircle className="w-4 h-4" /><span>{error}</span>
           </div>
         )}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); setConfirmSave(true) }} className="space-y-4">
           <div>
             <label className="label">Status</label>
             <select className="input" value={status} onChange={e => setStatus(e.target.value)}>
@@ -569,6 +594,15 @@ const ChangeStatusModal = ({ apiPrefix, student, statuses, onClose, onSaved }) =
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
           </div>
         </form>
+        <ConfirmDialog
+          open={confirmSave}
+          onOpenChange={(o) => { if (!o) setConfirmSave(false) }}
+          title="Change Status"
+          message="Are you sure you want to update this student's status?"
+          confirmLabel={saving ? 'Saving...' : 'Confirm'}
+          onConfirm={handleSubmit}
+          loading={saving}
+        />
       </Card>
     </div>
   )

@@ -5,11 +5,13 @@ import Button from '../components/Button'
 import Input from '../components/Input'
 import { User, Lock, Save, Camera, Mail, Phone, MapPin, Cake } from 'lucide-react'
 import axios from 'axios'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 const Profile = () => {
   const { user } = useAuth()
   const [tab, setTab] = useState('profile')
   const [saving, setSaving] = useState(false)
+  const [confirmAction, setConfirmAction] = useState(null)
   const [message, setMessage] = useState({ text: '', type: '' })
 
   const [profile, setProfile] = useState({
@@ -31,8 +33,8 @@ const Profile = () => {
     setTimeout(() => setMessage({ text: '', type: '' }), 4000)
   }
 
-  const handleProfileSubmit = async (e) => {
-    e.preventDefault()
+  const handleProfileSubmit = async () => {
+    setConfirmAction(null)
     setSaving(true)
     try {
       const res = await axios.put('/api/profile', profile)
@@ -44,8 +46,8 @@ const Profile = () => {
     }
   }
 
-  const handlePasswordSubmit = async (e) => {
-    e.preventDefault()
+  const handlePasswordSubmit = async () => {
+    setConfirmAction(null)
     setSaving(true)
     if (password.password !== password.password_confirmation) {
       showMessage('Passwords do not match', 'error')
@@ -104,7 +106,7 @@ const Profile = () => {
 
       {tab === 'profile' && (
         <Card>
-          <form onSubmit={handleProfileSubmit} className="space-y-6">
+          <form onSubmit={(e) => { e.preventDefault(); setConfirmAction('profile') }} className="space-y-6">
             <div className="flex items-center space-x-5 pb-6 border-b border-secondary-100">
               <div className="relative group">
                 <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-sm overflow-hidden">
@@ -169,7 +171,7 @@ const Profile = () => {
 
       {tab === 'password' && (
         <Card>
-          <form onSubmit={handlePasswordSubmit} className="space-y-5 max-w-md">
+          <form onSubmit={(e) => { e.preventDefault(); setConfirmAction('password') }} className="space-y-5 max-w-md">
             <div>
               <h3 className="text-base font-semibold text-secondary-900">Change Password</h3>
               <p className="text-sm text-secondary-500 mt-0.5">Ensure your account is secure with a strong password</p>
@@ -194,6 +196,23 @@ const Profile = () => {
           </form>
         </Card>
       )}
+
+      <ConfirmDialog
+        open={confirmAction === 'profile'}
+        onOpenChange={(o) => { if (!o) setConfirmAction(null) }}
+        title="Update Profile"
+        message="Are you sure you want to save these profile changes?"
+        confirmLabel="Save Changes"
+        onConfirm={handleProfileSubmit}
+      />
+      <ConfirmDialog
+        open={confirmAction === 'password'}
+        onOpenChange={(o) => { if (!o) setConfirmAction(null) }}
+        title="Change Password"
+        message="Are you sure you want to change your password?"
+        confirmLabel="Change Password"
+        onConfirm={handlePasswordSubmit}
+      />
     </div>
   )
 }
