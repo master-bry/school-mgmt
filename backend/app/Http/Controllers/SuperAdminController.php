@@ -111,6 +111,8 @@ class SuperAdminController extends Controller
             'subscription_plan', 'subscription_status',
         ]));
 
+        $school->fresh()->syncUserStatus();
+
         return response()->json($school->fresh());
     }
 
@@ -175,11 +177,13 @@ class SuperAdminController extends Controller
         if ($request->subscription_ends_at) {
             $data['subscription_ends_at'] = $request->subscription_ends_at;
         }
-        if ($request->subscription_status === 'active') {
+        if (in_array($request->subscription_status, ['active', 'trial'])) {
             $data['is_active'] = true;
         }
 
         $school->update($data);
+
+        $school->fresh()->syncUserStatus();
 
         return response()->json($school->fresh());
     }

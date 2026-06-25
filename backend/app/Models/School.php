@@ -94,4 +94,15 @@ class School extends Model
     {
         return $this->subscription_status === 'trial';
     }
+
+    public function isAccessible(): bool
+    {
+        return $this->is_active && in_array($this->subscription_status, ['active', 'trial']);
+    }
+
+    public function syncUserStatus(): void
+    {
+        $active = $this->isAccessible();
+        $this->users()->update(['is_active' => $active]);
+    }
 }

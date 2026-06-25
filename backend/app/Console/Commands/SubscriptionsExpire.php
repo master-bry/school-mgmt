@@ -12,17 +12,23 @@ class SubscriptionsExpire extends Command
 
     public function handle()
     {
-        $expired = School::where('subscription_status', 'active')
+        School::where('subscription_status', 'active')
             ->where('subscription_ends_at', '<=', now())
-            ->update(['subscription_status' => 'expired']);
+            ->get()->each(function ($school) {
+                $school->update(['subscription_status' => 'expired']);
+                $school->syncUserStatus();
+            });
 
-        $this->info("Expired {$expired} subscription(s).");
+        $this->info('Expired subscriptions and deactivated users.');
 
-        $trialsEnded = School::where('subscription_status', 'trial')
+        School::where('subscription_status', 'trial')
             ->where('subscription_ends_at', '<=', now())
-            ->update(['subscription_status' => 'expired']);
+            ->get()->each(function ($school) {
+                $school->update(['subscription_status' => 'expired']);
+                $school->syncUserStatus();
+            });
 
-        $this->info("Expired {$trialsEnded} trial(s).");
+        $this->info('Expired trials and deactivated users.');
 
         return Command::SUCCESS;
     }
