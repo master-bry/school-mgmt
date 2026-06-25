@@ -266,6 +266,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/feature-flags', [SuperAdminController::class, 'featureFlags']);
         Route::post('/feature-flags', [SuperAdminController::class, 'storeFeatureFlag']);
         Route::put('/feature-flags/{id}', [SuperAdminController::class, 'updateFeatureFlag']);
+        // Per-school feature assignment
+        Route::get('/schools/{id}/features', [SuperAdminController::class, 'schoolFeatures']);
+        Route::post('/schools/{id}/features/toggle', [SuperAdminController::class, 'toggleSchoolFeature']);
         // Cross-tenant analytics
         Route::get('/analytics', [SuperAdminController::class, 'analytics']);
     });

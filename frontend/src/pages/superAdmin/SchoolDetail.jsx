@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
-import { Building2, ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, CreditCard, Users, ShieldAlert, X, CheckCircle, AlertCircle, XCircle, Clock } from 'lucide-react'
+import { Building2, ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, CreditCard, Users, ShieldAlert, X, CheckCircle, AlertCircle, XCircle, Clock, ToggleLeft, ToggleRight, ShieldCheck } from 'lucide-react'
 import axios from 'axios'
 
 const statusIcon = { active: CheckCircle, trial: Clock, expired: XCircle, suspended: ShieldAlert, cancelled: XCircle }
@@ -19,6 +19,8 @@ const SchoolDetail = () => {
   const navigate = useNavigate()
   const [school, setSchool] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [features, setFeatures] = useState([])
+  const [featuresLoading, setFeaturesLoading] = useState(true)
   const [showEdit, setShowEdit] = useState(false)
   const [showSubEdit, setShowSubEdit] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -26,6 +28,14 @@ const SchoolDetail = () => {
   const [subForm, setSubForm] = useState({})
 
   useEffect(() => { fetchSchool() }, [id])
+
+  useEffect(() => {
+    if (id) {
+      axios.get(`/api/super-admin/schools/${id}/features`).then(({ data }) => {
+        setFeatures(data)
+      }).catch(console.error).finally(() => setFeaturesLoading(false))
+    }
+  }, [id])
 
   const fetchSchool = async () => {
     try {
@@ -61,6 +71,18 @@ const SchoolDetail = () => {
     try {
       await axios.post(`/api/super-admin/schools/${id}/suspend`)
       fetchSchool()
+    } catch (err) { console.error(err) }
+  }
+
+  const toggleFeature = async (featureKey, currentEnabled) => {
+    try {
+      await axios.post(`/api/super-admin/schools/${id}/features/toggle`, {
+        feature_key: featureKey,
+        is_enabled: !currentEnabled,
+      })
+      setFeatures(prev => prev.map(f =>
+        f.feature_key === featureKey ? { ...f, enabled: !currentEnabled, overridden: true } : f
+      ))
     } catch (err) { console.error(err) }
   }
 
@@ -206,6 +228,40 @@ const SchoolDetail = () => {
                 </div>
               )}
             </div>
+          </Card>
+
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-secondary-900">Features</h2>
+              <ShieldCheck className="w-4 h-4 text-secondary-400" />
+            </div>
+            {featuresLoading ? (
+              <div className="flex justify-center py-4"><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600" /></div>
+            ) : features.length === 0 ? (
+              <p className="text-sm text-secondary-400">No features configured globally</p>
+            ) : (
+              <div className="space-y-2">
+                {features.map(f => (
+                  <div key={f.feature_key} className="flex items-center justify-between py-1.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-secondary-900 truncate">{f.display_name}</p>
+                      <code className="text-xs text-secondary-400">{f.feature_key}</code>
+                    </div>
+                    <button
+                      onClick={() => toggleFeature(f.feature_key, f.enabled)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors shrink-0 ml-2 ${
+                        f.enabled
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'bg-secondary-100 text-secondary-500'
+                      }`}
+                    >
+                      {f.enabled ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                      {f.enabled ? 'On' : 'Off'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
         </div>
       </div>

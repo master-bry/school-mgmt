@@ -234,6 +234,51 @@ class SuperAdminController extends Controller
         return response()->json($flag, 201);
     }
 
+    // ─── Per-School Feature Assignment ─────────────────────────────
+
+    public function schoolFeatures($id)
+    {
+        $school = School::findOrFail($id);
+        $config = $school->config ?? [];
+        $schoolFeatures = $config['features'] ?? [];
+
+        $globalFlags = \App\Models\FeatureFlag::whereNull('school_id')
+            ->orderBy('feature_key')
+            ->get(['feature_key', 'display_name', 'description', 'is_enabled']);
+
+        return $globalFlags->map(function ($flag) use ($schoolFeatures) {
+            $overridden = array_key_exists($flag->feature_key, $schoolFeatures);
+            return [
+                'feature_key' => $flag->feature_key,
+                'display_name' => $flag->display_name,
+                'description' => $flag->description,
+                'enabled' => $overridden ? (bool) $schoolFeatures[$flag->feature_key] : $flag->is_enabled,
+                'overridden' => $overridden,
+            ];
+        });
+    }
+
+    public function toggleSchoolFeature(Request $request, $id)
+    {
+        $school = School::findOrFail($id);
+
+        $request->validate([
+            'feature_key' => 'required|string|max:100',
+            'is_enabled' => 'required|boolean',
+        ]);
+
+        $config = $school->config ?? [];
+        $features = $config['features'] ?? [];
+        $features[$request->feature_key] = $request->is_enabled;
+        $config['features'] = $features;
+        $school->update(['config' => $config]);
+
+        return response()->json([
+            'feature_key' => $request->feature_key,
+            'enabled' => $request->is_enabled,
+        ]);
+    }
+
     // ─── Cross-Tenant Analytics ─────────────────────────────────────
 
     public function analytics()
