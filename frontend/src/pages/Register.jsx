@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useTranslation } from '../hooks/useTranslation'
 import Button from '../components/Button'
 import Input from '../components/Input'
 import Card from '../components/Card'
@@ -10,6 +11,7 @@ import axios from 'axios'
 const Register = () => {
   const navigate = useNavigate()
   const { register } = useAuth()
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -31,7 +33,7 @@ const Register = () => {
     setError('')
 
     if (formData.password !== formData.password_confirmation) {
-      setError('Passwords do not match')
+      setError(t('register.password_mismatch'))
       return
     }
 
@@ -39,7 +41,7 @@ const Register = () => {
       await register(formData)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed')
+      setError(err.response?.data?.message || t('register.failed'))
     }
   }
 
@@ -50,8 +52,8 @@ const Register = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-full mb-4">
             <GraduationCap className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-secondary-900">School Management</h1>
-          <p className="text-secondary-600 mt-2">Create your student account</p>
+          <h1 className="text-3xl font-bold text-secondary-900">{t('register.title')}</h1>
+          <p className="text-secondary-600 mt-2">{t('register.subtitle')}</p>
         </div>
 
         {error && (
@@ -61,39 +63,39 @@ const Register = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input label="Full Name" type="text" value={formData.name}
+          <Input label={t('register.name_label')} type="text" value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required placeholder="Enter your full name" />
-          <Input label="Email" type="email" value={formData.email}
+            required placeholder={t('register.name_placeholder')} />
+          <Input label={t('register.email_label')} type="email" value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            required placeholder="Enter your email" />
+            required placeholder={t('register.email_placeholder')} />
           <div>
-            <label className="label">School (Optional)</label>
+            <label className="label">{t('register.school_label')}</label>
             <select className="input" value={formData.school_code}
               onChange={(e) => setFormData({ ...formData, school_code: e.target.value })}>
-              <option value="">No school affiliation</option>
+              <option value="">{t('register.no_school')}</option>
               {schools.map(s => (
                 <option key={s.code} value={s.code}>{s.name} ({s.code})</option>
               ))}
             </select>
           </div>
-          <Input label="Phone (Optional)" type="tel" value={formData.phone}
+          <Input label={t('register.phone_label')} type="tel" value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            placeholder="Enter your phone number" />
-          <Input label="Date of Birth (Optional)" type="date" value={formData.date_of_birth}
+            placeholder={t('register.phone_placeholder')} />
+          <Input label={t('register.dob_label')} type="date" value={formData.date_of_birth}
             onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })} />
-          <Input label="Password" type="password" value={formData.password}
+          <Input label={t('register.password_label')} type="password" value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            required placeholder="Enter your password" />
-          <Input label="Confirm Password" type="password" value={formData.password_confirmation}
+            required placeholder={t('register.password_placeholder')} />
+          <Input label={t('register.confirm_label')} type="password" value={formData.password_confirmation}
             onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
-            required placeholder="Confirm your password" />
-          <Button type="submit" className="w-full">Register</Button>
+            required placeholder={t('register.confirm_placeholder')} />
+          <Button type="submit" className="w-full">{t('register.button')}</Button>
         </form>
 
         <p className="text-center text-secondary-600 mt-6">
-          Already have an account?{' '}
-          <Link to="/login" className="text-primary-600 hover:underline">Sign In</Link>
+          {t('register.has_account')}{' '}
+          <Link to="/login" className="text-primary-600 hover:underline">{t('register.sign_in')}</Link>
         </p>
       </Card>
     </div>

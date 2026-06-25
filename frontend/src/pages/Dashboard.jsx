@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useTranslation } from '../hooks/useTranslation'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import Layout from '../components/Layout'
 import Card from '../components/Card'
@@ -38,6 +39,7 @@ const roleIcons = {
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const [stats, setStats] = useState({})
@@ -106,7 +108,7 @@ const Dashboard = () => {
       {/* ───── Super Admin Dashboard ───── */}
       {user.role === 'super_admin' && (
         <div className="space-y-6">
-          <StatHeader icon={RoleIcon} title={roleTitle} subtitle="Multi-Tenant SaaS Platform Administration" />
+          <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.super_admin_subtitle')} />
           <StatCards items={[
             { label: 'Total Schools', value: stats.total_schools || 0, icon: Building2, gradient: 'from-primary-600 to-primary-700' },
             { label: 'Active Schools', value: stats.active_schools || 0, icon: ShieldCheck, gradient: 'from-emerald-600 to-emerald-700' },
@@ -163,7 +165,7 @@ const Dashboard = () => {
       {/* ───── Admin Dashboard ───── */}
       {user.role === 'admin' && (
         <div className="space-y-6">
-          <StatHeader icon={RoleIcon} title={roleTitle} subtitle="System Administration & IT Management" />
+          <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.admin_subtitle')} />
           <StatCards items={[
             { label: 'Total Students', value: stats.total_users || 0, icon: Users, gradient: 'from-primary-600 to-primary-700' },
             { label: 'Teachers', value: stats.user_counts?.teachers || 0, icon: GraduationCap, gradient: 'from-emerald-600 to-emerald-700' },
@@ -178,7 +180,7 @@ const Dashboard = () => {
       {/* ───── Academician Dashboard ───── */}
       {user.role === 'academician' && (
         <div className="space-y-6">
-          <StatHeader icon={RoleIcon} title={roleTitle} subtitle="Curriculum quality, examinations, and content management" />
+          <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.academician_subtitle')} />
 
           {/* Primary stat cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -242,7 +244,7 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-24 text-secondary-400 text-sm">
-                  <Calendar className="w-5 h-5 mr-2" /> No sessions scheduled for today
+                  <Calendar className="w-5 h-5 mr-2" /> {t('common.no_sessions')}
                 </div>
               )}
             </Card>
@@ -396,7 +398,7 @@ const Dashboard = () => {
               ) : (
                 <div className="text-center py-8 text-secondary-400">
                   <ClipboardCheck className="w-8 h-8 mx-auto mb-2" />
-                  <p className="text-sm">No recent submissions</p>
+                  <p className="text-sm">{t('common.no_submissions')}</p>
                 </div>
               )}
             </Card>
@@ -419,7 +421,7 @@ const Dashboard = () => {
                 <div className="flex items-center justify-center h-48 text-secondary-400">
                   <div className="text-center">
                     <Newspaper className="w-8 h-8 mx-auto mb-2" />
-                    <p className="text-sm">Not enough data yet</p>
+                    <p className="text-sm">{t('common.no_data_yet')}</p>
                   </div>
                 </div>
               )}
@@ -487,7 +489,7 @@ const Dashboard = () => {
       {/* ───── Cashier Dashboard ───── */}
       {user.role === 'cashier' && (
         <div className="space-y-6">
-          <StatHeader icon={RoleIcon} title={roleTitle} subtitle="Fee collections, payments, and financial reports" />
+          <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.cashier_subtitle')} />
           <StatCards items={[
             { label: 'Pending', value: stats.pending_collections || 0, icon: AlertCircle, gradient: 'from-rose-600 to-rose-700' },
             { label: 'Collected', value: stats.total_collected ? `$${stats.total_collected}` : '$0', icon: DollarSign, gradient: 'from-emerald-600 to-emerald-700' },
@@ -581,7 +583,7 @@ const Dashboard = () => {
       {/* ───── Head of School Dashboard ───── */}
       {user.role === 'head_of_school' && (
         <div className="space-y-6">
-          <StatHeader icon={RoleIcon} title={roleTitle} subtitle="Institutional KPIs and strategic oversight" />
+          <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.head_of_school_subtitle')} />
           <StatCards items={[
             { label: 'Students', value: stats.total_students || 0, icon: GraduationCap, gradient: 'from-primary-600 to-primary-700' },
             { label: 'Staff', value: stats.total_staff || 0, icon: Users, gradient: 'from-emerald-600 to-emerald-700' },
@@ -644,7 +646,7 @@ const Dashboard = () => {
       {/* ───── Assistant Head Dashboard ───── */}
       {user.role === 'assistant_head' && (
         <div className="space-y-6">
-          <StatHeader icon={RoleIcon} title={roleTitle} subtitle="Class performance monitoring and operational oversight" />
+          <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.assistant_head_subtitle')} />
           <StatCards items={[
             { label: 'Students', value: stats.total_students || 0, icon: Users, gradient: 'from-primary-600 to-primary-700' },
             { label: 'Teachers', value: stats.total_teachers || 0, icon: GraduationCap, gradient: 'from-emerald-600 to-emerald-700' },
@@ -690,7 +692,7 @@ const Dashboard = () => {
       {/* ───── Secretary Dashboard ───── */}
       {user.role === 'secretary' && (
         <div className="space-y-6">
-          <StatHeader icon={RoleIcon} title={roleTitle} subtitle="Administrative tasks, announcements, and user management" />
+          <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.secretary_subtitle')} />
           <StatCards items={[
             { label: 'Total Users', value: stats.total_users || 0, icon: Users, gradient: 'from-primary-600 to-primary-700' },
             { label: 'Students', value: stats.total_students || 0, icon: GraduationCap, gradient: 'from-emerald-600 to-emerald-700' },
@@ -717,8 +719,8 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-semibold flex items-center space-x-2"><Megaphone className="w-4 h-4 text-amber-500" /><span>Announcements</span></h2>
-                <Button size="sm" onClick={() => setShowAnnouncementModal(true)}><Plus className="w-4 h-4 mr-1" /> New</Button>
+                <h2 className="text-base font-semibold flex items-center space-x-2"><Megaphone className="w-4 h-4 text-amber-500" /><span>{t('nav.announcements')}</span></h2>
+                <Button size="sm" onClick={() => setShowAnnouncementModal(true)}><Plus className="w-4 h-4 mr-1" /> {t('common.new')}</Button>
               </div>
               {announcements.length > 0 ? (
                 <div className="space-y-3 max-h-80 overflow-y-auto">
@@ -741,13 +743,13 @@ const Dashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-secondary-400"><Megaphone className="w-8 h-8 mx-auto mb-2" /><p className="text-sm">No announcements yet</p></div>
+                <div className="text-center py-8 text-secondary-400"><Megaphone className="w-8 h-8 mx-auto mb-2" /><p className="text-sm">{t('common.no_announcements')}</p></div>
               )}
             </Card>
             <Card>
-              <h2 className="text-base font-semibold mb-4">Manage Users</h2>
-              <p className="text-sm text-secondary-500 mb-4">Create new users for the school system.</p>
-              <Button onClick={() => setShowUserModal(true)}><UserPlusIcon className="w-4 h-4 mr-1" /> Create New User</Button>
+              <h2 className="text-base font-semibold mb-4">{t('secretary.manage_users')}</h2>
+              <p className="text-sm text-secondary-500 mb-4">{t('secretary.manage_users_desc')}</p>
+              <Button onClick={() => setShowUserModal(true)}><UserPlusIcon className="w-4 h-4 mr-1" /> {t('secretary.create_user')}</Button>
             </Card>
           </div>
         </div>
@@ -756,7 +758,7 @@ const Dashboard = () => {
       {/* ───── Teacher Dashboard ───── */}
       {user.role === 'teacher' && (
         <div className="space-y-6">
-          <StatHeader icon={RoleIcon} title={roleTitle} subtitle="Your classes, attendance, and grading" />
+          <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.teacher_subtitle')} />
           <StatCards items={[
             { label: 'My Classes', value: stats.assigned_classes || 0, icon: BookOpen, gradient: 'from-primary-600 to-primary-700' },
             { label: 'My Subjects', value: stats.assigned_subjects || 0, icon: Calendar, gradient: 'from-emerald-600 to-emerald-700' },
@@ -790,7 +792,7 @@ const Dashboard = () => {
               <Card>
                 <h2 className="text-base font-semibold mb-4">Attendance Today</h2>
                 <p className="text-4xl font-bold text-primary-600">{stats.attendance_today}</p>
-                <p className="text-sm text-secondary-500">marked today</p>
+                <p className="text-sm text-secondary-500">{t('common.marked_today')}</p>
               </Card>
             )}
           </div>
@@ -800,7 +802,7 @@ const Dashboard = () => {
       {/* ───── Student Dashboard ───── */}
       {user.role === 'student' && (
         <div className="space-y-6">
-          <StatHeader icon={RoleIcon} title={roleTitle} subtitle="Your academic journey at a glance" />
+          <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.student_subtitle')} />
           <StatCards items={[
             { label: 'Attendance', value: (() => { const a = stats.attendance_stats || {}; const t = a.present + a.late + a.absent; return t > 0 ? `${Math.round((a.present / t) * 100)}%` : 'N/A' })(), icon: CheckCircle, gradient: 'from-primary-600 to-primary-700' },
             { label: 'Present Days', value: (stats.attendance_stats || {}).present || 0, icon: Calendar, gradient: 'from-emerald-600 to-emerald-700' },
@@ -870,7 +872,7 @@ const Dashboard = () => {
       {/* ───── Parent Dashboard ───── */}
       {user.role === 'parent' && (
         <div className="space-y-6">
-          <StatHeader icon={RoleIcon} title={roleTitle} subtitle="Monitor your children's academic progress" />
+          <StatHeader icon={RoleIcon} title={roleTitle} subtitle={t('dashboard.parent_subtitle')} />
           <StatCards items={[
             { label: 'Children', value: stats.children?.length || 0, icon: Users, gradient: 'from-primary-600 to-primary-700' },
             { label: 'Attendance', value: 'Monitor', icon: Calendar, gradient: 'from-emerald-600 to-emerald-700' },
@@ -910,24 +912,24 @@ const Dashboard = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowAnnouncementModal(false)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-secondary-900">New Announcement</h3>
+              <h3 className="text-lg font-semibold text-secondary-900">{t('modal.new_announcement')}</h3>
               <button onClick={() => setShowAnnouncementModal(false)} className="p-1 hover:bg-secondary-100 rounded"><X className="w-5 h-5 text-secondary-500" /></button>
             </div>
             <form onSubmit={async e => { e.preventDefault(); setSubmitting(true); try { const { data } = await axios.post('/api/secretary/announcements', announcementForm); setAnnouncements(prev => [data, ...prev]); setShowAnnouncementModal(false); setAnnouncementForm({ title: '', content: '', category: 'general', is_public: true }); } catch (err) { console.error(err) } finally { setSubmitting(false) } }} className="space-y-4">
-              <Input label="Title" value={announcementForm.title} onChange={e => setAnnouncementForm(f => ({ ...f, title: e.target.value }))} placeholder="Announcement title" required />
-              <div><label className="label">Content</label><textarea className="input min-h-[100px] resize-y" value={announcementForm.content} onChange={e => setAnnouncementForm(f => ({ ...f, content: e.target.value }))} placeholder="Write your announcement..." required /></div>
-              <div><label className="label">Category</label>
+              <Input label={t('form.title')} value={announcementForm.title} onChange={e => setAnnouncementForm(f => ({ ...f, title: e.target.value }))} placeholder={t('form.placeholder_title')} required />
+              <div><label className="label">{t('form.content')}</label><textarea className="input min-h-[100px] resize-y" value={announcementForm.content} onChange={e => setAnnouncementForm(f => ({ ...f, content: e.target.value }))} placeholder={t('form.placeholder_content')} required /></div>
+              <div><label className="label">{t('form.category')}</label>
                 <select className="input" value={announcementForm.category} onChange={e => setAnnouncementForm(f => ({ ...f, category: e.target.value }))}>
-                  <option value="general">General</option><option value="academic">Academic</option><option value="event">Event</option><option value="emergency">Emergency</option>
+                  <option value="general">{t('category.general')}</option><option value="academic">{t('category.academic')}</option><option value="event">{t('category.event')}</option><option value="emergency">{t('category.emergency')}</option>
                 </select>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={announcementForm.is_public} onChange={e => setAnnouncementForm(f => ({ ...f, is_public: e.target.checked }))} className="w-4 h-4 rounded border-secondary-300 text-primary-600" />
-                <span className="text-sm text-secondary-700">Public announcement</span>
+                <span className="text-sm text-secondary-700">{t('form.public')}</span>
               </label>
               <div className="flex justify-end gap-3">
-                <Button variant="secondary" type="button" onClick={() => setShowAnnouncementModal(false)}>Cancel</Button>
-                <Button type="submit" disabled={submitting}>{submitting ? 'Creating...' : 'Create'}</Button>
+                <Button variant="secondary" type="button" onClick={() => setShowAnnouncementModal(false)}>{t('common.cancel')}</Button>
+                <Button type="submit" disabled={submitting}>{submitting ? t('common.creating') : t('common.create')}</Button>
               </div>
             </form>
           </div>
@@ -939,23 +941,23 @@ const Dashboard = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowUserModal(false)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-secondary-900">Create User</h3>
+              <h3 className="text-lg font-semibold text-secondary-900">{t('modal.create_user')}</h3>
               <button onClick={() => setShowUserModal(false)} className="p-1 hover:bg-secondary-100 rounded"><X className="w-5 h-5 text-secondary-500" /></button>
             </div>
             <form onSubmit={async e => { e.preventDefault(); setSubmitting(true); try { await axios.post('/api/secretary/users', userForm); setShowUserModal(false); setUserForm({ name: '', email: '', password: '', role: 'student' }); } catch (err) { console.error(err) } finally { setSubmitting(false) } }} className="space-y-4">
-              <Input label="Full Name" value={userForm.name} onChange={e => setUserForm(f => ({ ...f, name: e.target.value }))} placeholder="John Doe" required />
-              <Input label="Email" type="email" icon={Mail} value={userForm.email} onChange={e => setUserForm(f => ({ ...f, email: e.target.value }))} placeholder="john@school.com" required />
-              <Input label="Password" type="password" value={userForm.password} onChange={e => setUserForm(f => ({ ...f, password: e.target.value }))} placeholder="Min 8 characters" required />
-              <div><label className="label">Role</label>
+              <Input label={t('form.full_name')} value={userForm.name} onChange={e => setUserForm(f => ({ ...f, name: e.target.value }))} placeholder={t('form.placeholder_name')} required />
+              <Input label={t('form.email')} type="email" icon={Mail} value={userForm.email} onChange={e => setUserForm(f => ({ ...f, email: e.target.value }))} placeholder={t('form.placeholder_email')} required />
+              <Input label={t('form.password')} type="password" value={userForm.password} onChange={e => setUserForm(f => ({ ...f, password: e.target.value }))} placeholder={t('form.placeholder_password')} required />
+              <div><label className="label">{t('form.role')}</label>
                 <select className="input" value={userForm.role} onChange={e => setUserForm(f => ({ ...f, role: e.target.value }))}>
-                  <option value="student">Student</option><option value="teacher">Teacher</option><option value="parent">Parent</option>
-                  <option value="academician">Academician</option><option value="cashier">Cashier</option><option value="secretary">Secretary</option>
-                  <option value="head_of_school">Head of School</option><option value="assistant_head">Assistant Head</option>
+                  <option value="student">{t('role.student')}</option><option value="teacher">{t('role.teacher')}</option><option value="parent">{t('role.parent')}</option>
+                  <option value="academician">{t('role.academician')}</option><option value="cashier">{t('role.cashier')}</option><option value="secretary">{t('role.secretary')}</option>
+                  <option value="head_of_school">{t('role.head_of_school')}</option><option value="assistant_head">{t('role.assistant_head')}</option>
                 </select>
               </div>
               <div className="flex justify-end gap-3">
-                <Button variant="secondary" type="button" onClick={() => setShowUserModal(false)}>Cancel</Button>
-                <Button type="submit" disabled={submitting}><UserPlus className="w-4 h-4 mr-1" />{submitting ? 'Creating...' : 'Create User'}</Button>
+                <Button variant="secondary" type="button" onClick={() => setShowUserModal(false)}>{t('common.cancel')}</Button>
+                <Button type="submit" disabled={submitting}><UserPlus className="w-4 h-4 mr-1" />{submitting ? t('common.creating') : t('modal.create_user')}</Button>
               </div>
             </form>
           </div>
@@ -974,7 +976,7 @@ const StatHeader = ({ icon: Icon, title, subtitle }) => (
       <Icon className="w-4 h-4" />
       <span>{title}</span>
     </div>
-    <h1 className="text-2xl font-bold text-secondary-900">{title} Dashboard</h1>
+    <h1 className="text-2xl font-bold text-secondary-900">{title}</h1>
     <p className="text-secondary-500 mt-0.5">{subtitle}</p>
   </div>
 )
