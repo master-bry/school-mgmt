@@ -340,6 +340,40 @@ const SchoolDetail = () => {
         </div>
       )}
 
+      {showUserModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowUserModal(false)}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">{editingUser ? 'Edit User' : 'Add User'}</h3>
+              <button onClick={() => setShowUserModal(false)} className="p-1 hover:bg-secondary-100 rounded"><X className="w-5 h-5" /></button>
+            </div>
+            <form onSubmit={handleUserSubmit} className="space-y-4">
+              <div><label className="label">Name</label><input className="input" value={userForm.name} onChange={e => setUserForm(f => ({...f, name: e.target.value}))} required /></div>
+              <div><label className="label">Email</label><input className="input" type="email" value={userForm.email} onChange={e => setUserForm(f => ({...f, email: e.target.value}))} required /></div>
+              <div><label className="label">Password {editingUser && '(leave blank to keep current)'}</label><input className="input" type="password" value={userForm.password} onChange={e => setUserForm(f => ({...f, password: e.target.value}))} required={!editingUser} minLength={8} /></div>
+              <div><label className="label">Role</label>
+                <select className="input" value={userForm.role} onChange={e => setUserForm(f => ({...f, role: e.target.value}))}>
+                  <option value="admin">Admin</option>
+                  <option value="head_of_school">Head of School</option>
+                  <option value="assistant_head">Assistant Head</option>
+                  <option value="teacher">Teacher</option>
+                  <option value="academician">Academician</option>
+                  <option value="cashier">Cashier</option>
+                  <option value="secretary">Secretary</option>
+                  <option value="student">Student</option>
+                  <option value="parent">Parent</option>
+                </select>
+              </div>
+              <div><label className="label">Phone</label><input className="input" value={userForm.phone} onChange={e => setUserForm(f => ({...f, phone: e.target.value}))} /></div>
+              <div className="flex justify-end gap-3">
+                <Button variant="secondary" type="button" onClick={() => setShowUserModal(false)}>Cancel</Button>
+                <Button type="submit" disabled={submitting}>{submitting ? 'Saving...' : editingUser ? 'Update User' : 'Create User'}</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {showSubEdit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowSubEdit(false)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
