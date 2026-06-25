@@ -539,22 +539,6 @@ const StaffManager = ({ apiPrefix, title, subtitle }) => {
     } catch (e) { showToast('Failed to delete', 'error') }
   }
 
-  const handleApproveSalary = async (id) => {
-    try {
-      await axios.post(`${apiPrefix}/staff/${id}/approve-salary`)
-      showToast('Salary approved')
-      fetchStaff()
-    } catch (e) { showToast('Approval failed', 'error') }
-  }
-
-  const handleApproveBonus = async (id) => {
-    try {
-      await axios.post(`${apiPrefix}/staff/${id}/approve-bonus`)
-      showToast('Bonus approved')
-      fetchStaff()
-    } catch (e) { showToast('Approval failed', 'error') }
-  }
-
   const detail = (s) => s.teacher_detail || s.teacherDetail || {}
 
   const filtered = staff.filter(s => {
@@ -649,8 +633,8 @@ const StaffManager = ({ apiPrefix, title, subtitle }) => {
                         <span className="text-sm text-secondary-900">{d.salary ? `$${Number(d.salary).toLocaleString()}` : '-'}</span>
                         {d.salary && (
                           salaryApproved
-                            ? <BadgeCheck className="w-4 h-4 text-emerald-500" />
-                            : <button onClick={() => handleApproveSalary(s.id)} className="text-xs text-amber-600 hover:text-amber-700 font-medium">Approve</button>
+                            ? <BadgeCheck className="w-4 h-4 text-emerald-500" title="Approved" />
+                            : <span className="text-xs text-amber-600 font-medium">Pending</span>
                         )}
                       </div>
                     </td>
@@ -659,8 +643,8 @@ const StaffManager = ({ apiPrefix, title, subtitle }) => {
                         <span className="text-sm text-secondary-900">{d.bonus ? `$${Number(d.bonus).toLocaleString()}` : '-'}</span>
                         {d.bonus && (
                           bonusApproved
-                            ? <BadgeCheck className="w-4 h-4 text-emerald-500" />
-                            : <button onClick={() => handleApproveBonus(s.id)} className="text-xs text-amber-600 hover:text-amber-700 font-medium">Approve</button>
+                            ? <BadgeCheck className="w-4 h-4 text-emerald-500" title="Approved" />
+                            : <span className="text-xs text-amber-600 font-medium">Pending</span>
                         )}
                       </div>
                     </td>

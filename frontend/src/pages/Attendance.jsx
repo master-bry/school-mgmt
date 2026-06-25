@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useNavigate, useParams } from 'react-router-dom'
 import Card from '../components/Card'
 import Button from '../components/Button'
-import { Calendar, CheckCircle, XCircle, Clock, AlertCircle, Users, FileText } from 'lucide-react'
+import { Calendar, CheckCircle, XCircle, Clock, AlertCircle, Users, FileText, CheckSquare, BarChart3 } from 'lucide-react'
 import axios from 'axios'
 
 const STATUSES = ['present', 'absent', 'late', 'excused', 'permission']
@@ -23,28 +23,49 @@ const Attendance = () => {
   const [permissionReasons, setPermissionReasons] = useState({})
   const [permissionDays, setPermissionDays] = useState({})
   const [submitting, setSubmitting] = useState(false)
+  const [summary, setSummary] = useState(null)
+  const [totalEnrolled, setTotalEnrolled] = useState(0)
+  const [classInfo, setClassInfo] = useState(null)
 
   const isTeacher = user?.role === 'teacher'
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
     if (isTeacher && mode === 'mark') return
+    if (isTeacher && mode === 'view' && classes.length === 0) loadViewClasses()
     fetchAttendance()
-  }, [user, navigate, childId, mode])
+  }, [user, navigate, childId, mode, selectedClass])
+
+  const loadViewClasses = async () => {
+    try {
+      const { data } = await axios.get('/api/teacher/classes')
+      setClasses(data || [])
+    } catch (error) {
+      console.error('Error loading classes:', error)
+    }
+  }
 
   const fetchAttendance = async () => {
     try {
       let res
       if (user.role === 'student') {
         res = await axios.get('/api/student/attendance')
+        setAttendance(res.data.data || res.data)
       } else if (user.role === 'parent' && childId) {
         res = await axios.get(`/api/parent/child/${childId}/attendance`)
+        setAttendance(res.data.data || res.data)
       } else if (isTeacher && selectedClass) {
         res = await axios.get(`/api/teacher/attendance/${selectedClass}`)
+        if (res.data.attendances) {
+          setAttendance(res.data.attendances)
+          setTotalEnrolled(res.data.total_enrolled)
+          setClassInfo(res.data.class)
+        } else {
+          setAttendance(res.data.data || res.data)
+        }
       } else {
         return
       }
-      setAttendance(res.data.data || res.data)
     } catch (error) {
       console.error('Error fetching attendance:', error)
     } finally {
@@ -57,6 +78,7 @@ const Attendance = () => {
       const { data } = await axios.get('/api/teacher/classes')
       setClasses(data || [])
       setAttendance([])
+      setSummary(null)
       setSelectedClass('')
       setStudents([])
       setAttendanceData({})
@@ -94,6 +116,7 @@ const Attendance = () => {
   const handleClassChange = (e) => {
     const val = e.target.value
     setSelectedClass(val)
+    setSummary(null)
     if (val) loadStudentsForClass(val)
   }
 
@@ -109,13 +132,15 @@ const Attendance = () => {
           permission_days: parseInt(permissionDays[studentId]) || 1,
         } : {}),
       }))
-      await axios.post('/api/teacher/attendance', {
+      const res = await axios.post('/api/teacher/attendance', {
         class_id: parseInt(selectedClass),
         date: selectedDate,
         attendances,
       })
+      setSummary(res.data.summary)
+      setAttendance(res.data.attendances)
+      setTotalEnrolled(res.data.summary.total_enrolled)
       setMode('view')
-      fetchAttendance()
     } catch (error) {
       console.error('Error submitting attendance:', error)
     } finally {
@@ -184,7 +209,7 @@ const Attendance = () => {
               <select className="input" value={selectedClass} onChange={handleClassChange}>
                 <option value="">Choose a class...</option>
                 {classes.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name} {c.section ? `- ${c.section}` : ''}</option>
+                  <option key={c.id} value={c.id}>{c.name} {c.section ? `- ${c.section}` : ''} ({c.students?.length || 0} students)</option>
                 ))}
               </select>
             </div>
@@ -194,6 +219,11 @@ const Attendance = () => {
                 onChange={(e) => setSelectedDate(e.target.value)} />
             </div>
           </div>
+          {students.length > 0 && (
+            <div className="text-sm text-secondary-500 mb-2">
+              Total enrolled: <strong>{students.length}</strong> students
+            </div>
+          )}
         </Card>
 
         {students.length > 0 && (
@@ -202,6 +232,7 @@ const Attendance = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-secondary-200">
+                    <th className="text-left py-3 px-4 text-secondary-600 font-medium">#</th>
                     <th className="text-left py-3 px-4 text-secondary-600 font-medium">Student</th>
                     {STATUSES.map((s) => (
                       <th key={s} className="text-center py-3 px-4 text-secondary-600 font-medium capitalize">{s}</th>
@@ -210,8 +241,9 @@ const Attendance = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {students.map((student) => (
+                  {students.map((student, idx) => (
                     <tr key={student.id} className="border-b border-secondary-100 hover:bg-secondary-50">
+                      <td className="py-3 px-4 text-secondary-400 text-sm">{idx + 1}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
@@ -259,7 +291,11 @@ const Attendance = () => {
                 </tbody>
               </table>
             </div>
-            <div className="mt-4 flex justify-end">
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-secondary-500">
+                <CheckSquare className="w-4 h-4 inline mr-1" />
+                {Object.keys(attendanceData).length} / {students.length} students marked
+              </div>
               <Button onClick={handleSubmitAttendance} disabled={submitting}>
                 {submitting ? 'Submitting...' : 'Submit Attendance'}
               </Button>
@@ -284,10 +320,30 @@ const Attendance = () => {
         )}
       </div>
 
+      {isTeacher && (
+        <Card className="mb-6">
+          <div className="flex items-center space-x-4">
+            <label className="label mb-0 whitespace-nowrap">Filter by Class</label>
+            <select className="input max-w-xs" value={selectedClass} onChange={e => { setSelectedClass(e.target.value); setAttendance([]); setLoading(true); }}>
+              <option value="">All classes</option>
+              {classes.map((c) => (
+                <option key={c.id} value={c.id}>{c.name} {c.section ? `- ${c.section}` : ''}</option>
+              ))}
+            </select>
+            {classInfo && (
+              <span className="text-sm text-secondary-500">
+                Enrolled: <strong>{totalEnrolled}</strong>
+              </span>
+            )}
+          </div>
+        </Card>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
         <Card className="bg-gradient-to-br from-primary-500 to-primary-600 text-white text-center">
-          <p className="text-primary-100 text-sm">Overall</p>
+          <p className="text-primary-100 text-sm">Attendance Rate</p>
           <p className="text-3xl font-bold">{percentage}%</p>
+          <p className="text-primary-200 text-xs mt-1">{stats.present} present of {total} recorded</p>
         </Card>
         <Card className="bg-gradient-to-br from-accent-500 to-accent-600 text-white text-center">
           <p className="text-accent-100 text-sm">Present</p>
@@ -311,12 +367,32 @@ const Attendance = () => {
         </Card>
       </div>
 
+      {summary && (
+        <Card className="mb-6 border-2 border-accent-300 bg-accent-50">
+          <div className="flex items-center space-x-2 mb-3">
+            <BarChart3 className="w-5 h-5 text-accent-600" />
+            <h3 className="font-semibold text-accent-800">Last Submission Summary</h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div><span className="text-secondary-500">Enrolled:</span> <strong>{summary.total_enrolled}</strong></div>
+            <div><span className="text-secondary-500">Marked:</span> <strong>{summary.total_marked}</strong></div>
+            <div><span className="text-green-600">Present:</span> <strong>{summary.present}</strong></div>
+            <div><span className="text-red-600">Absent:</span> <strong>{summary.absent}</strong></div>
+            <div><span className="text-orange-600">Late:</span> <strong>{summary.late}</strong></div>
+            <div><span className="text-yellow-600">Excused:</span> <strong>{summary.excused}</strong></div>
+            <div><span className="text-blue-600">Permission:</span> <strong>{summary.permission}</strong></div>
+            <div><span className="text-primary-600">Percentage:</span> <strong>{summary.percentage}%</strong></div>
+          </div>
+        </Card>
+      )}
+
       <Card>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-secondary-200">
                 <th className="text-left py-3 px-4 text-secondary-600 font-medium">Date</th>
+                <th className="text-left py-3 px-4 text-secondary-600 font-medium">Student</th>
                 <th className="text-left py-3 px-4 text-secondary-600 font-medium">Class</th>
                 <th className="text-left py-3 px-4 text-secondary-600 font-medium">Status</th>
                 <th className="text-left py-3 px-4 text-secondary-600 font-medium">Permission Reason</th>
@@ -328,7 +404,15 @@ const Attendance = () => {
               {attendance.map((a) => (
                 <tr key={a.id} className="border-b border-secondary-100 hover:bg-secondary-50">
                   <td className="py-3 px-4 text-secondary-900">{new Date(a.date).toLocaleDateString()}</td>
-                  <td className="py-3 px-4 text-secondary-600">{a.class?.name || 'N/A'}</td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-medium text-primary-600">{a.student?.name?.charAt(0)}</span>
+                      </div>
+                      <span className="font-medium text-secondary-900">{a.student?.name || 'Unknown'}</span>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-secondary-600">{a.class?.name || classInfo?.name || 'N/A'}</td>
                   <td className="py-3 px-4">
                     <span className={`inline-flex items-center space-x-1 px-2 py-1 text-xs font-medium rounded-full ${getStatusStyle(a.status)}`}>
                       {getStatusIcon(a.status)}
@@ -342,7 +426,7 @@ const Attendance = () => {
               ))}
               {attendance.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="py-8 text-center text-secondary-500">No attendance records found</td>
+                  <td colSpan="7" className="py-8 text-center text-secondary-500">No attendance records found</td>
                 </tr>
               )}
             </tbody>

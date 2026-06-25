@@ -360,7 +360,7 @@ class AssistantHeadController extends Controller
                 ->whereIn('role', ['teacher', 'academician', 'cashier', 'secretary'])
                 ->with('teacherDetail')
                 ->orderBy('name')
-                ->get(['id', 'name', 'email', 'role', 'phone', 'address', 'gender', 'national_id', 'religion', 'nationality', 'blood_group', 'marital_status', 'employee_code', 'date_of_birth', 'is_active', 'created_at'])
+                ->get(['id', 'name', 'email', 'role', 'phone', 'address', 'gender', 'national_id', 'religion', 'nationality', 'blood_group', 'marital_status', 'employee_code', 'date_of_birth', 'status', 'is_active', 'created_at'])
         );
     }
 
@@ -423,6 +423,8 @@ class AssistantHeadController extends Controller
             'employee_code' => $data['employee_code'] ?? null,
             'date_of_birth' => $data['date_of_birth'] ?? null,
             'role' => $data['role'],
+            'status' => \App\Models\User::STATUS_ACTIVE,
+            'is_active' => true,
         ]);
 
         $user->teacherDetail()->create([
@@ -602,16 +604,19 @@ class AssistantHeadController extends Controller
             'responded_at' => now(),
         ]);
 
-        if ($approval->category === 'salary' && $data['status'] === Approval::STATUS_APPROVED) {
-            $target = $approval->approvable;
+        $target = $approval->approvable;
+        if ($approval->category === 'salary') {
             if ($target && method_exists($target, 'teacherDetail') && $target->teacherDetail) {
-                $target->teacherDetail->update(['salary_approved_by' => auth()->id()]);
+                $target->teacherDetail->update([
+                    'salary_approved_by' => $data['status'] === Approval::STATUS_APPROVED ? auth()->id() : null,
+                ]);
             }
         }
-        if ($approval->category === 'bonus' && $data['status'] === Approval::STATUS_APPROVED) {
-            $target = $approval->approvable;
+        if ($approval->category === 'bonus') {
             if ($target && method_exists($target, 'teacherDetail') && $target->teacherDetail) {
-                $target->teacherDetail->update(['bonus_approved_by' => auth()->id()]);
+                $target->teacherDetail->update([
+                    'bonus_approved_by' => $data['status'] === Approval::STATUS_APPROVED ? auth()->id() : null,
+                ]);
             }
         }
 
@@ -671,6 +676,7 @@ class AssistantHeadController extends Controller
             ]);
         } else {
             $fee->update([
+                'status' => 'cancelled',
                 'approval_status' => 'rejected',
                 'reviewed_by_ah' => auth()->id(),
                 'reviewed_at_ah' => now(),

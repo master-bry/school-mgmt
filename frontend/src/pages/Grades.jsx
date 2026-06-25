@@ -16,6 +16,7 @@ const Grades = () => {
   const [classes, setClasses] = useState([])
   const [exams, setExams] = useState([])
   const [students, setStudents] = useState([])
+  const [selectedClass, setSelectedClass] = useState('')
   const [selectedExam, setSelectedExam] = useState('')
   const [gradeData, setGradeData] = useState({})
   const [submitting, setSubmitting] = useState(false)
@@ -50,12 +51,9 @@ const Grades = () => {
   const loadEnterGrades = async () => {
     setLoading(true)
     try {
-      const [classesRes, usersRes] = await Promise.all([
-        axios.get('/api/admin/classes'),
-        axios.get('/api/admin/users'),
-      ])
-      setClasses(classesRes.data)
-      setStudents(usersRes.data.filter(u => u.role === 'student'))
+      const classesRes = await axios.get('/api/teacher/classes')
+      const data = Array.isArray(classesRes.data) ? classesRes.data : (classesRes.data.data || [])
+      setClasses(data)
       setLoading(false)
     } catch (error) {
       console.error('Error loading grade entry:', error)
@@ -70,7 +68,7 @@ const Grades = () => {
       return
     }
     try {
-      const res = await axios.get('/api/admin/exams', { params: { class_id: classId } })
+      const res = await axios.get('/api/exams', { params: { class_id: classId } })
       setExams(res.data)
     } catch (error) {
       console.error('Error loading exams:', error)
@@ -79,8 +77,14 @@ const Grades = () => {
 
   const handleClassChange = (e) => {
     const val = e.target.value
+    setSelectedClass(val)
     setSelectedExam('')
     setGradeData({})
+    setStudents([])
+    if (val) {
+      const cls = classes.find(c => String(c.id) === String(val))
+      setStudents(cls?.students || [])
+    }
     loadExams(val)
   }
 
@@ -168,7 +172,7 @@ const Grades = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="label">Select Class</label>
-              <select className="input" value={selectedExam ? exams.find(e => String(e.id) === selectedExam)?.class_id || '' : ''}
+              <select className="input" value={selectedClass}
                 onChange={handleClassChange}>
                 <option value="">Choose a class...</option>
                 {classes.map((c) => (

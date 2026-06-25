@@ -161,7 +161,7 @@ class CashierController extends Controller
             'fee_type' => $data['fee_type'], 'type' => 'fine',
             'amount' => $data['amount'], 'due_date' => $data['due_date'],
             'applies_to' => 'student', 'status' => 'pending',
-            'approval_status' => 'pending_cashier',
+            'approval_status' => 'pending_hos',
         ]);
         return response()->json($fee, 201);
     }
@@ -304,14 +304,13 @@ class CashierController extends Controller
         ]);
     }
 
-    public function sendFeeReminder(Request $request)
+    public function sendFeeReminder(Request $request, $id)
     {
         $request->validate([
-            'parent_id' => 'required|exists:users,id',
             'message' => 'nullable|string',
         ]);
 
-        $parent = User::findOrFail($request->parent_id);
+        $parent = User::findOrFail($id);
         if ($parent->role !== 'parent') {
             return response()->json(['message' => 'User is not a parent'], 422);
         }

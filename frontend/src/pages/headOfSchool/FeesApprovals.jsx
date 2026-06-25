@@ -2,8 +2,8 @@ import { useEffect, useState, useCallback } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import {
-  DollarSign, CheckCircle, XCircle, Eye, Search,
-  Clock, User, X, CreditCard, AlertTriangle
+  DollarSign, CheckCircle, XCircle, Search,
+  Clock, User, X, CreditCard, AlertTriangle, CheckSquare, Square
 } from 'lucide-react'
 import axios from 'axios'
 
@@ -24,10 +24,11 @@ const APPROVAL_STATUS_LABELS = {
 const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pending_hos' }) => {
   const [fees, setFees] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selected, setSelected] = useState(null)
+  const [selectedFee, setSelectedFee] = useState(null)
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedIds, setSelectedIds] = useState(new Set())
 
   const fetchFees = useCallback(async () => {
     setLoading(true)
@@ -44,12 +45,49 @@ const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pend
 
   useEffect(() => { fetchFees() }, [fetchFees])
 
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredFees.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filteredFees.map(f => f.id)))
+    }
+  }
+
   const handleAction = async (id, action) => {
     setSubmitting(true)
     try {
       await axios.put(`${apiPrefix}/fees/${id}/${statusFilter === 'pending_hos' ? 'approve' : 'review'}`, { action, notes })
       setFees(prev => prev.filter(f => f.id !== id))
-      setSelected(null)
+      setSelectedFee(null)
+      setNotes('')
+    } catch (err) {
+      console.error('Error:', err)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleBulkAction = async (action) => {
+    const ids = [...selectedIds]
+    if (ids.length === 0) return
+    const label = action === 'approve' ? 'Approve' : 'Reject'
+    if (!window.confirm(`${label} ${ids.length} selected fee(s)?`)) return
+    setSubmitting(true)
+    const endpoint = statusFilter === 'pending_hos' ? 'approve' : 'review'
+    try {
+      await Promise.all(ids.map(id =>
+        axios.put(`${apiPrefix}/fees/${id}/${endpoint}`, { action, notes: notes || undefined })
+      ))
+      setFees(prev => prev.filter(f => !ids.includes(f.id)))
+      setSelectedIds(new Set())
       setNotes('')
     } catch (err) {
       console.error('Error:', err)
@@ -67,11 +105,13 @@ const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pend
 
   const filteredFees = searchQuery
     ? fees.filter(f => {
-        const studentName = (f.student?.first_name || '') + ' ' + (f.student?.last_name || '')
+        const studentName = f.student?.name || 'All Students'
         const q = searchQuery.toLowerCase()
         return studentName.toLowerCase().includes(q) || (f.fee_type || '').toLowerCase().includes(q)
       })
     : fees
+
+  const allSelected = filteredFees.length > 0 && selectedIds.size === filteredFees.length
 
   return (
     <div className="space-y-6">
@@ -106,6 +146,31 @@ const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pend
         </div>
       </Card>
 
+      {selectedIds.size > 0 && (
+        <Card className="p-3 bg-primary-50 border-primary-200">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-primary-800">
+              {selectedIds.size} selected
+            </span>
+            <div className="flex gap-2">
+              <input
+                className="input text-sm max-w-[300px]"
+                placeholder="Notes for all (optional)..."
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+              />
+              <Button variant="danger" size="sm" onClick={() => handleBulkAction('reject')} disabled={submitting}>
+                <XCircle className="w-4 h-4 mr-1" />Reject All
+              </Button>
+              <Button variant="primary" size="sm" onClick={() => handleBulkAction('approve')} disabled={submitting}>
+                <CheckCircle className="w-4 h-4 mr-1" />
+                {statusFilter === 'pending_hos' ? 'Approve All' : 'Forward All'}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <Card>
         {loading ? (
           <div className="flex items-center justify-center py-12">
@@ -122,6 +187,11 @@ const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pend
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-secondary-200">
+                  <th className="py-3 px-3 w-10">
+                    <button onClick={toggleSelectAll} className="text-secondary-400 hover:text-secondary-600">
+                      {allSelected ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+                    </button>
+                  </th>
                   <th className="text-left py-3 px-3 text-secondary-600 font-medium">Student</th>
                   <th className="text-left py-3 px-3 text-secondary-600 font-medium">Type</th>
                   <th className="text-left py-3 px-3 text-secondary-600 font-medium">Fee Type</th>
@@ -133,12 +203,15 @@ const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pend
               </thead>
               <tbody>
                 {filteredFees.map(f => {
-                  const studentName = f.student
-                    ? `${f.student.first_name || ''} ${f.student.last_name || ''}`
-                    : 'All Students'
+                  const studentName = f.student?.name || 'All Students'
                   const statusColor = APPROVAL_STATUS_COLORS[f.approval_status] || 'bg-gray-100 text-gray-600'
                   return (
                     <tr key={f.id} className="border-b border-secondary-100 hover:bg-secondary-50">
+                      <td className="py-3 px-3">
+                        <button onClick={() => toggleSelect(f.id)} className="text-secondary-400 hover:text-secondary-600">
+                          {selectedIds.has(f.id) ? <CheckSquare className="w-5 h-5 text-primary-600" /> : <Square className="w-5 h-5" />}
+                        </button>
+                      </td>
                       <td className="py-3 px-3 text-secondary-900 font-medium whitespace-nowrap">{studentName}</td>
                       <td className="py-3 px-3">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -159,7 +232,7 @@ const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pend
                         </span>
                       </td>
                       <td className="py-3 px-3">
-                        <Button variant="primary" size="sm" onClick={() => { setSelected(f); setNotes('') }}>
+                        <Button variant="primary" size="sm" onClick={() => { setSelectedFee(f); setNotes('') }}>
                           <CheckCircle className="w-3.5 h-3.5 mr-1" />Review
                         </Button>
                       </td>
@@ -172,12 +245,12 @@ const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pend
         )}
       </Card>
 
-      {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelected(null)}>
+      {selectedFee && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setSelectedFee(null)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-secondary-900">Review Fee</h3>
-              <button onClick={() => setSelected(null)} className="p-1 hover:bg-secondary-100 rounded">
+              <button onClick={() => setSelectedFee(null)} className="p-1 hover:bg-secondary-100 rounded">
                 <X className="w-5 h-5 text-secondary-500" />
               </button>
             </div>
@@ -185,35 +258,31 @@ const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pend
               <div className="flex items-center gap-2 text-secondary-700">
                 <User className="w-4 h-4 text-primary-500 shrink-0" />
                 <span className="font-medium">Student:</span>
-                <span>
-                  {selected.student
-                    ? `${selected.student.first_name || ''} ${selected.student.last_name || ''}`
-                    : 'All Students'}
-                </span>
+                <span>{selectedFee.student?.name || 'All Students'}</span>
               </div>
               <div className="flex items-center gap-2 text-secondary-700">
                 <CreditCard className="w-4 h-4 text-accent-500 shrink-0" />
                 <span className="font-medium">Fee Type:</span>
-                <span className="capitalize">{selected.fee_type || '-'}</span>
+                <span className="capitalize">{selectedFee.fee_type || '-'}</span>
               </div>
               <div className="flex items-center gap-2 text-secondary-700">
                 <DollarSign className="w-4 h-4 text-emerald-500 shrink-0" />
                 <span className="font-medium">Amount:</span>
-                <span className="font-semibold">${parseFloat(selected.amount || 0).toLocaleString()}</span>
+                <span className="font-semibold">${parseFloat(selectedFee.amount || 0).toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-2 text-secondary-500 text-sm">
                 <Clock className="w-4 h-4" />
-                <span>Due: {formatDate(selected.due_date)}</span>
+                <span>Due: {formatDate(selectedFee.due_date)}</span>
               </div>
-              {selected.description && (
+              {selectedFee.description && (
                 <div className="text-secondary-700 bg-secondary-50 rounded-lg p-3">
                   <p className="text-xs font-medium text-secondary-500 mb-1">Description</p>
-                  <p className="text-sm whitespace-pre-wrap">{selected.description}</p>
+                  <p className="text-sm whitespace-pre-wrap">{selectedFee.description}</p>
                 </div>
               )}
               <div className="flex items-center gap-2 text-secondary-500 text-sm">
                 <Clock className="w-4 h-4" />
-                <span>Created {formatDate(selected.created_at)}</span>
+                <span>Created {formatDate(selectedFee.created_at)}</span>
               </div>
             </div>
             <div className="mb-6">
@@ -227,13 +296,13 @@ const FeesApprovals = ({ apiPrefix = '/api/head-of-school', statusFilter = 'pend
               />
             </div>
             <div className="flex justify-end gap-3">
-              <Button variant="secondary" onClick={() => { setSelected(null); setNotes('') }}>
+              <Button variant="secondary" onClick={() => { setSelectedFee(null); setNotes('') }}>
                 Cancel
               </Button>
-              <Button variant="danger" onClick={() => handleAction(selected.id, 'reject')} disabled={submitting}>
+              <Button variant="danger" onClick={() => handleAction(selectedFee.id, 'reject')} disabled={submitting}>
                 <XCircle className="w-4 h-4 mr-1" />Reject
               </Button>
-              <Button variant="primary" onClick={() => handleAction(selected.id, 'approve')} disabled={submitting}>
+              <Button variant="primary" onClick={() => handleAction(selectedFee.id, 'approve')} disabled={submitting}>
                 <CheckCircle className="w-4 h-4 mr-1" />
                 {statusFilter === 'pending_hos' ? 'Final Approve' : 'Forward to HOS'}
               </Button>

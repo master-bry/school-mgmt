@@ -113,6 +113,9 @@ function App() {
             <Route path="events" element={<StudentEvents />} />
             <Route path="resources" element={<LibraryResources apiPrefix="/api/student" />} />
             <Route path="books" element={<LibraryBooks apiPrefix="/api/student" />} />
+            <Route path="classes" element={<Classes />} />
+            <Route path="attendance" element={<Attendance />} />
+            <Route path="grades" element={<Grades />} />
             <Route path="teacher/resources" element={<LibraryResources apiPrefix="/api/teacher" />} />
             <Route path="teacher/books" element={<LibraryBooks apiPrefix="/api/teacher" />} />
 
