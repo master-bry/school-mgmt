@@ -1053,7 +1053,7 @@ const Dashboard = () => {
                       <div key={i}>
                         <div className="flex justify-between text-sm mb-1">
                           <span className="text-secondary-700 font-medium truncate">{item.subject}</span>
-                          <span className="text-secondary-600 font-medium">{item.average}%</span>
+                          <span className="text-secondary-600 font-medium">{Number(item.average).toFixed(2)}%</span>
                         </div>
                         <div className="w-full bg-secondary-100 rounded-full h-2.5">
                           <div className={`h-2.5 rounded-full transition-all ${item.average >= 70 ? 'bg-emerald-500' : item.average >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
