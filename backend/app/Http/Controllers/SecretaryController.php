@@ -73,7 +73,7 @@ class SecretaryController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'required|in:admin,teacher,student,parent,academician,cashier,head_of_school,assistant_head,secretary',
+            'role' => 'required|in:teacher,student,parent,academician,cashier,secretary',
             'phone' => 'nullable|string|max:20',
         ]);
         $data['school_id'] = $this->schoolId();

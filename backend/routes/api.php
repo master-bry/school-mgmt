@@ -258,6 +258,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/schools/{id}', [SuperAdminController::class, 'showSchool']);
         Route::put('/schools/{id}', [SuperAdminController::class, 'updateSchool']);
         Route::post('/schools/{id}/suspend', [SuperAdminController::class, 'suspendSchool']);
+        Route::post('/schools/{id}/admin', [SuperAdminController::class, 'storeSchoolAdmin']);
         // Subscription & billing
         Route::get('/subscriptions', [SuperAdminController::class, 'subscriptions']);
         Route::put('/schools/{id}/subscription', [SuperAdminController::class, 'updateSubscription']);

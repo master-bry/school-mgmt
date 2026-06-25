@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
-import { Building2, ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, CreditCard, Users, ShieldAlert, X, CheckCircle, AlertCircle, Clock } from 'lucide-react'
+import { Building2, ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, CreditCard, Users, ShieldAlert, X, CheckCircle, AlertCircle, XCircle, Clock } from 'lucide-react'
 import axios from 'axios'
 
 const statusIcon = { active: CheckCircle, trial: Clock, expired: XCircle, suspended: ShieldAlert, cancelled: XCircle }

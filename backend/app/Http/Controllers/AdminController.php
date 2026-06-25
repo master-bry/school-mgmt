@@ -137,7 +137,7 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'required|in:super_admin,admin,teacher,student,parent,academician,cashier,head_of_school,assistant_head,secretary',
+            'role' => 'required|in:admin,teacher,student,parent,academician,cashier,head_of_school,assistant_head,secretary',
             'class_id' => 'nullable|exists:classes,id',
             'parent_id' => 'nullable|exists:users,id',
             'phone' => 'nullable|string|max:20',
@@ -174,7 +174,7 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,'.$id,
-            'role' => 'sometimes|required|in:super_admin,admin,teacher,student,parent,academician,cashier,head_of_school,assistant_head,secretary',
+            'role' => 'sometimes|required|in:admin,teacher,student,parent,academician,cashier,head_of_school,assistant_head,secretary',
             'password' => 'sometimes|required|string|min:8',
             'class_id' => 'nullable|exists:classes,id',
             'parent_id' => 'nullable|exists:users,id',

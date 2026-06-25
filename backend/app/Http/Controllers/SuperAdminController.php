@@ -114,6 +114,30 @@ class SuperAdminController extends Controller
         return response()->json($school->fresh());
     }
 
+    public function storeSchoolAdmin(Request $request, $id)
+    {
+        $school = School::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $user = User::create([
+            'school_id' => $school->id,
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => 'admin',
+            'phone' => $request->phone,
+            'is_active' => true,
+        ]);
+
+        return response()->json($user, 201);
+    }
+
     public function suspendSchool($id)
     {
         $school = School::findOrFail($id);
