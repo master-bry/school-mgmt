@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useTranslation } from '../hooks/useTranslation'
@@ -9,7 +9,7 @@ import {
   Clock, BarChart3, ChevronRight, ClipboardCheck, BookMarked,
   FileText, CreditCard, TrendingUp, Award, ShieldCheck,
   FileSignature, Megaphone, Newspaper, MapPin, FolderOpen,
-  PieChart, Wallet, BookCheck, Monitor, Building2, Globe, Languages
+  PieChart, Wallet, BookCheck, Monitor, Building2, Globe, Languages, Bell
 } from 'lucide-react'
 
 const roleLabels = {
@@ -25,6 +25,38 @@ const Layout = ({ children }) => {
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [notifOpen, setNotifOpen] = useState(false)
+  const notifRef = useRef(null)
+
+  useEffect(() => {
+    const fetchNotifs = async () => {
+      try {
+        const { data } = await axios.get('/api/notifications')
+        setNotifications(data.data || [])
+      } catch {}
+    }
+    fetchNotifs()
+    const interval = setInterval(fetchNotifs, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const unreadCount = notifications.filter(n => !n.read_at).length
+
+  const markRead = async (id) => {
+    try {
+      await axios.post(`/api/notifications/${id}/read`)
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
+    } catch {}
+  }
 
   const handleLogout = () => {
     logout()
@@ -226,6 +258,44 @@ const Layout = ({ children }) => {
             </div>
 
             <div className="flex items-center space-x-3">
+              {/* Notifications Bell */}
+              {user && (
+                <div className="relative" ref={notifRef}>
+                  <button onClick={() => setNotifOpen(!notifOpen)}
+                    className="relative p-2 rounded-lg hover:bg-secondary-100 transition-colors">
+                    <Bell className="w-5 h-5 text-secondary-500" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                  {notifOpen && (
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-secondary-200 py-1.5 z-30 animate-fadeIn max-h-96 overflow-y-auto">
+                      <div className="px-4 py-2 border-b border-secondary-100">
+                        <p className="text-sm font-semibold text-secondary-900">Notifications</p>
+                      </div>
+                      {notifications.length === 0 ? (
+                        <div className="px-4 py-6 text-center text-sm text-secondary-400">No notifications</div>
+                      ) : (
+                        notifications.slice(0, 10).map(n => (
+                          <div key={n.id}
+                            className={`px-4 py-3 border-b border-secondary-50 hover:bg-secondary-50 transition-colors cursor-pointer ${!n.read_at ? 'bg-primary-50/40' : ''}`}
+                            onClick={() => { if (!n.read_at) markRead(n.id) }}>
+                            <div className="flex items-start justify-between">
+                              <p className="text-sm font-medium text-secondary-900">{n.title}</p>
+                              {!n.read_at && <span className="w-2 h-2 bg-primary-500 rounded-full flex-shrink-0 mt-1" />}
+                            </div>
+                            <p className="text-xs text-secondary-500 mt-0.5 line-clamp-2">{n.message}</p>
+                            <p className="text-[10px] text-secondary-400 mt-1">{new Date(n.created_at).toLocaleDateString()}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Language Toggle (Swahili Portal) */}
               {features?.swahili_portal && (
                 <button onClick={switchLocale}

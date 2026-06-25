@@ -296,9 +296,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('books/{book}/return', [LibraryController::class, 'return']);
     Route::get('exams', [ExamController::class, 'index']);
 
-    // ────── Notifications & SMS (Parent Portal / Tanzanian SMS Gateway) ──────
-    Route::middleware(['role:parent'])->prefix('notifications')->group(function () {
-        Route::get('/', [ParentController::class, 'notifications']);
+    // ────── Notifications (all roles) ──────
+    Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
         Route::post('/{id}/read', [ParentController::class, 'markNotificationRead']);
     });
 
