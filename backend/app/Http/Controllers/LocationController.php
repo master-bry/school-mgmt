@@ -11,15 +11,21 @@ class LocationController extends Controller
     public function countries()
     {
         return Cache::remember('locations.countries', 86400, function () {
-            $response = Http::timeout(10)->get('https://restcountries.com/v3.1/all?fields=name,cca2,demonyms');
+            $response = Http::timeout(10)->get('https://restcountries.com/v3.1/all?fields=name,cca2,demonyms,idd,flags');
             if (!$response->successful()) {
                 return response()->json([]);
             }
             $countries = collect($response->json())->map(function ($c) {
+                $idd = $c['idd'] ?? [];
+                $root = $idd['root'] ?? '';
+                $suffixes = $idd['suffixes'] ?? [''];
+                $phoneCode = $root . ($suffixes[0] ?? '');
                 return [
                     'name' => $c['name']['common'] ?? '',
                     'code' => $c['cca2'] ?? '',
                     'nationality' => $c['demonyms']['eng']['m'] ?? ($c['demonyms']['eng']['f'] ?? ''),
+                    'phone_code' => $phoneCode ?: null,
+                    'flag' => $c['flags']['png'] ?? ($c['flags']['svg'] ?? null),
                 ];
             })->sortBy('name')->values();
             return $countries;
