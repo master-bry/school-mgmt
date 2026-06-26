@@ -24,6 +24,8 @@ class User extends Authenticatable
         'national_id',
         'religion',
         'nationality',
+        'country',
+        'city',
         'blood_group',
         'marital_status',
         'employee_code',
