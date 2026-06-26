@@ -5,6 +5,7 @@ import Input from '../components/Input'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { Users, Search, Plus, X, AlertCircle, CheckCircle, GraduationCap, DollarSign, BadgeCheck, Trash2, Edit } from 'lucide-react'
 import axios from 'axios'
+import PhoneInput from '../components/PhoneInput'
 
 const EMPLOYMENT_TYPES = ['full-time', 'part-time', 'contract', 'intern']
 
@@ -52,7 +53,7 @@ const AddTeacherModal = ({ apiPrefix, onClose, onSaved }) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input label="Password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} required />
-            <Input label="Phone" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+            <PhoneInput apiPrefix={apiPrefix} label="Phone" value={form.phone} onChange={v => setForm({...form, phone: v})} />
           </div>
           <Input label="Address" value={form.address} onChange={e => setForm({...form, address: e.target.value})} />
           <div className="grid grid-cols-3 gap-4">

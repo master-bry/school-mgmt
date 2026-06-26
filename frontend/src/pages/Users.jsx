@@ -8,6 +8,7 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import { required, email, minLength, validateForm } from '../lib/validation'
 import { Users as UsersIcon, Edit2, Trash2, Plus, X, Search, AlertCircle } from 'lucide-react'
 import axios from 'axios'
+import PhoneInput from '../components/PhoneInput'
 
 const roleColors = {
   admin: 'bg-purple-100 text-purple-700',
@@ -162,9 +163,8 @@ const UserForm = ({ user: editingUser, onClose, onSaved }) => {
             </select>
           </div>
 
-          <Input label="Phone" type="tel" value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            placeholder="Enter phone number" />
+          <PhoneInput apiPrefix="/api" label="Phone" value={formData.phone}
+            onChange={v => setFormData({ ...formData, phone: v })} />
 
           <div>
             <label className="label">Address</label>
