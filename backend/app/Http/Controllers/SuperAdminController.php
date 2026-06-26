@@ -61,6 +61,8 @@ class SuperAdminController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
+            'country' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
             'subscription_plan' => 'nullable|string|in:free,starter,growth,enterprise',
             'subscription_status' => 'nullable|string|in:active,trial,expired,suspended,cancelled',
         ]);
@@ -72,6 +74,8 @@ class SuperAdminController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'address' => $request->address,
+            'country' => $request->country,
+            'city' => $request->city,
             'code' => $code,
             'is_active' => true,
             'subscription_plan' => $request->subscription_plan ?? 'free',
@@ -101,13 +105,15 @@ class SuperAdminController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
+            'country' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
             'is_active' => 'sometimes|boolean',
             'subscription_plan' => 'sometimes|string|in:free,starter,growth,enterprise',
             'subscription_status' => 'sometimes|string|in:active,trial,expired,suspended,cancelled',
         ]);
 
         $school->update($request->only([
-            'name', 'email', 'phone', 'address', 'is_active',
+            'name', 'email', 'phone', 'address', 'country', 'city', 'is_active',
             'subscription_plan', 'subscription_status',
         ]));
 

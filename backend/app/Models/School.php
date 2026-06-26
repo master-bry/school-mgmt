@@ -14,6 +14,8 @@ class School extends Model
         'email',
         'phone',
         'address',
+        'country',
+        'city',
         'logo',
         'code',
         'is_active',
