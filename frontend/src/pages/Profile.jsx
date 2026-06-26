@@ -6,6 +6,8 @@ import Input from '../components/Input'
 import { User, Lock, Save, Camera, Mail, Phone, MapPin, Cake } from 'lucide-react'
 import axios from 'axios'
 import ConfirmDialog from '../components/ConfirmDialog'
+import LocationFields from '../components/LocationFields'
+import PhoneInput from '../components/PhoneInput'
 
 const Profile = () => {
   const { user } = useAuth()
@@ -18,6 +20,9 @@ const Profile = () => {
     name: user?.name || '',
     phone: user?.phone || '',
     address: user?.address || '',
+    country: user?.country || '',
+    city: user?.city || '',
+    nationality: user?.nationality || '',
     date_of_birth: user?.date_of_birth || '',
     profile_image: user?.profile_image || '',
   })
@@ -142,12 +147,14 @@ const Profile = () => {
                 placeholder="Enter your full name" />
               <Input label="Email" type="email" value={user?.email || ''} disabled
                 placeholder="Email cannot be changed" />
-              <Input label="Phone" type="tel" value={profile.phone}
-                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                placeholder="Enter phone number" icon={Phone} />
+              <PhoneInput apiPrefix="/api" label="Phone" value={profile.phone}
+                onChange={v => setProfile({ ...profile, phone: v })} />
               <Input label="Date of Birth" type="date" value={profile.date_of_birth}
                 onChange={(e) => setProfile({ ...profile, date_of_birth: e.target.value })} icon={Cake} />
             </div>
+
+            <LocationFields apiPrefix="/api" values={{ country: profile.country, city: profile.city, nationality: profile.nationality }}
+              onChange={(k, v) => setProfile({ ...profile, [k]: v })} />
 
             <div>
               <label className="label">Address</label>

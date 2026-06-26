@@ -4,6 +4,8 @@ import Card from '../../components/Card'
 import Button from '../../components/Button'
 import { Building2, ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, CreditCard, Users, ShieldAlert, X, CheckCircle, AlertCircle, XCircle, Clock, ToggleLeft, ToggleRight, ShieldCheck, Plus, Edit2, Trash2 } from 'lucide-react'
 import axios from 'axios'
+import LocationFields from '../../components/LocationFields'
+import PhoneInput from '../../components/PhoneInput'
 
 const statusIcon = { active: CheckCircle, trial: Clock, expired: XCircle, suspended: ShieldAlert, cancelled: XCircle }
 const statusColor = {
@@ -128,7 +130,8 @@ const SchoolDetail = () => {
   const openEdit = () => {
     setEditForm({
       name: school.name, email: school.email || '', phone: school.phone || '',
-      address: school.address || '', is_active: school.is_active,
+      address: school.address || '', country: school.country || '', city: school.city || '',
+      is_active: school.is_active,
     })
     setShowEdit(true)
   }
@@ -325,7 +328,8 @@ const SchoolDetail = () => {
             <form onSubmit={handleEdit} className="space-y-4">
               <div><label className="label">School Name</label><input className="input" value={editForm.name} onChange={e => setEditForm(f => ({...f, name: e.target.value}))} required /></div>
               <div><label className="label">Email</label><input className="input" type="email" value={editForm.email} onChange={e => setEditForm(f => ({...f, email: e.target.value}))} /></div>
-              <div><label className="label">Phone</label><input className="input" value={editForm.phone} onChange={e => setEditForm(f => ({...f, phone: e.target.value}))} /></div>
+              <PhoneInput apiPrefix="/api" label="Phone" value={editForm.phone || ''} onChange={v => setEditForm(f => ({...f, phone: v}))} />
+              <LocationFields apiPrefix="/api" values={{ country: editForm.country || '', city: editForm.city || '', nationality: '' }} onChange={(k, v) => setEditForm(f => ({...f, [k]: v}))} />
               <div><label className="label">Address</label><textarea className="input" value={editForm.address} onChange={e => setEditForm(f => ({...f, address: e.target.value}))} /></div>
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={editForm.is_active} onChange={e => setEditForm(f => ({...f, is_active: e.target.checked}))} />
@@ -364,7 +368,7 @@ const SchoolDetail = () => {
                   <option value="parent">Parent</option>
                 </select>
               </div>
-              <div><label className="label">Phone</label><input className="input" value={userForm.phone} onChange={e => setUserForm(f => ({...f, phone: e.target.value}))} /></div>
+              <PhoneInput apiPrefix="/api" label="Phone" value={userForm.phone || ''} onChange={v => setUserForm(f => ({...f, phone: v}))} />
               <div className="flex justify-end gap-3">
                 <Button variant="secondary" type="button" onClick={() => setShowUserModal(false)}>Cancel</Button>
                 <Button type="submit" disabled={submitting}>{submitting ? 'Saving...' : editingUser ? 'Update User' : 'Create User'}</Button>

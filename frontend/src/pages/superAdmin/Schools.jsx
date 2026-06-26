@@ -5,6 +5,8 @@ import Button from '../../components/Button'
 import Input from '../../components/Input'
 import { Building2, Plus, Mail, Phone, MapPin, Search, X, CheckCircle, AlertCircle } from 'lucide-react'
 import axios from 'axios'
+import LocationFields from '../../components/LocationFields'
+import PhoneInput from '../../components/PhoneInput'
 
 const Schools = () => {
   const navigate = useNavigate()
@@ -12,7 +14,7 @@ const Schools = () => {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [search, setSearch] = useState('')
-  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', subscription_plan: 'free' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', country: '', city: '', subscription_plan: 'free' })
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => { fetchSchools() }, [])
@@ -104,7 +106,8 @@ const Schools = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input label="School Name" value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))} required />
               <Input label="Email" type="email" icon={Mail} value={form.email} onChange={e => setForm(f => ({...f, email: e.target.value}))} />
-              <Input label="Phone" icon={Phone} value={form.phone} onChange={e => setForm(f => ({...f, phone: e.target.value}))} />
+              <PhoneInput apiPrefix="/api" label="Phone" value={form.phone} onChange={v => setForm(f => ({...f, phone: v}))} />
+              <LocationFields apiPrefix="/api" values={{ country: form.country, city: form.city, nationality: '' }} onChange={(k, v) => setForm(f => ({...f, [k]: v}))} />
               <div><label className="label">Address</label><textarea className="input" value={form.address} onChange={e => setForm(f => ({...f, address: e.target.value}))} /></div>
               <div><label className="label">Subscription Plan</label>
                 <select className="input" value={form.subscription_plan} onChange={e => setForm(f => ({...f, subscription_plan: e.target.value}))}>
