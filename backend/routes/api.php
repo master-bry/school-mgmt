@@ -21,6 +21,7 @@ use App\Http\Controllers\HeadOfSchoolController;
 use App\Http\Controllers\AssistantHeadController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\SecretaryController;
+use App\Http\Controllers\LocationController;
 
 // Public routes
 Route::get('/announcements/public', [AnnouncementController::class, 'publicIndex']);
@@ -295,6 +296,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('books/{book}/issue', [LibraryController::class, 'issue']);
     Route::post('books/{book}/return', [LibraryController::class, 'return']);
     Route::get('exams', [ExamController::class, 'index']);
+
+    // ────── Locations (all roles) ──────
+    Route::middleware('auth:sanctum')->prefix('locations')->group(function () {
+        Route::get('/countries', [LocationController::class, 'countries']);
+        Route::get('/cities', [LocationController::class, 'cities']);
+    });
 
     // ────── Notifications (all roles) ──────
     Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
