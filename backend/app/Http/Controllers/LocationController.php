@@ -134,11 +134,41 @@ class LocationController extends Controller
         });
     }
 
+    private array $tanzaniaCities = [
+        'Arusha', 'Babati', 'Bagamoyo', 'Bahi', 'Bariadi', 'Biharamulo', 'Bukoba',
+        'Bukombe', 'Bunda', 'Busega', 'Butiama', 'Chake Chake', 'Chamwino', 'Chato',
+        'Chemba', 'Chunya', 'Dar es Salaam', 'Dodoma', 'Geita', 'Handeni', 'Hai',
+        'Ifakara', 'Igunga', 'Ileje', 'Ilala', 'Iringa', 'Itilima', 'Kahama',
+        'Kakonko', 'Kalambo', 'Kaliua', 'Karagwe', 'Karatu', 'Kaskazini', 'Kasulu',
+        'Kibaha', 'Kibondo', 'Kigamboni', 'Kigoma', 'Kilindi', 'Kilosa', 'Kilwa',
+        'Kinondoni', 'Kishapu', 'Kisarawe', 'Kiteto', 'Koani', 'Konde', 'Kondoa',
+        'Kongwa', 'Korogwe', 'Kusini', 'Kwimba', 'Kyela', 'Kyerwa', 'Lindi',
+        'Liwale', 'Longido', 'Ludewa', 'Lushoto', 'Mafia', 'Mafinga', 'Magharibi',
+        'Magu', 'Makete', 'Makunduchi', 'Manyoni', 'Masasi', 'Maswa', 'Mbarali',
+        'Mbeya', 'Mbinga', 'Mbozi', 'Mbulu', 'Mbogwe', 'Meatu', 'Micheweni',
+        'Mikumi', 'Missenyi', 'Misungwi', 'Mkalama', 'Mkoani', 'Mkokotoni',
+        'Mkuranga', 'Mlele', 'Momba', 'Monduli', 'Morogoro', 'Moshi', 'Mpanda',
+        'Mpwapwa', 'Msalala', 'Mto wa Mbu', 'Mtamba', 'Mtwara', 'Mufindi',
+        'Muheza', 'Muleba', 'Musoma', 'Mwanza', 'Mwanga', 'Nachingwea', 'Namanga',
+        'Namtumbo', 'Nanyamba', 'Newala', 'Ngara', 'Ngorongoro', 'Njombe',
+        'Nkasi', 'Nsimbo', 'Nyamagana', 'Nyang\'hwale', 'Nyasa', 'Nzega',
+        'Pangani', 'Rombo', 'Rorya', 'Ruangwa', 'Rufiji', 'Rungwe', 'Same',
+        'Sengerema', 'Serengeti', 'Shinyanga', 'Siha', 'Sikonge', 'Simanjiro',
+        'Singida', 'Songea', 'Songwe', 'Sumbawanga', 'Tabora', 'Tandahimba',
+        'Tanga', 'Tanganyika', 'Tarime', 'Temeke', 'Tunduma', 'Tunduru',
+        'Turiani', 'Ubungo', 'Ukerewe', 'Ungunja', 'Urambo', 'Ushetu', 'Uvinza',
+        'Uyui', 'Vwawa', 'Wanging\'ombe', 'Wete',
+    ];
+
     public function cities(Request $request)
     {
         $country = $request->query('country');
         if (!$country) {
             return [];
+        }
+
+        if (strtolower($country) === 'tanzania') {
+            return $this->tanzaniaCities;
         }
 
         $cacheKey = 'locations.cities.' . md5($country);
