@@ -14,6 +14,7 @@ const Profile = () => {
   const [tab, setTab] = useState('profile')
   const [saving, setSaving] = useState(false)
   const [confirmAction, setConfirmAction] = useState(null)
+  const [isEditing, setIsEditing] = useState(false)
   const [message, setMessage] = useState({ text: '', type: '' })
 
   const [profile, setProfile] = useState({
@@ -44,6 +45,7 @@ const Profile = () => {
     try {
       const res = await axios.put('/api/profile', profile)
       showMessage(res.data.message)
+      setIsEditing(false)
     } catch (err) {
       showMessage(err.response?.data?.message || 'Failed to update profile', 'error')
     } finally {
@@ -111,9 +113,9 @@ const Profile = () => {
 
       {tab === 'profile' && (
         <Card>
-          <form onSubmit={(e) => { e.preventDefault(); setConfirmAction('profile') }} className="space-y-6">
-            <div className="flex items-center space-x-5 pb-6 border-b border-secondary-100">
-              <div className="relative group">
+          {!isEditing ? (
+            <div className="space-y-6">
+              <div className="flex items-center space-x-5 pb-6 border-b border-secondary-100">
                 <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-sm overflow-hidden">
                   {profile.profile_image ? (
                     <img src={profile.profile_image} alt="" className="w-full h-full object-cover" />
@@ -121,58 +123,108 @@ const Profile = () => {
                     <span className="text-2xl font-bold text-white">{getInitials(profile.name)}</span>
                   )}
                 </div>
-                <button type="button" onClick={() => {
-                  const url = window.prompt('Enter image URL:')
-                  if (url) setProfile({ ...profile, profile_image: url })
-                }}
-                  className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full flex items-center justify-center
-                           shadow-md border border-secondary-200 text-secondary-600 hover:text-primary-600
-                           hover:border-primary-300 transition-all opacity-0 group-hover:opacity-100">
-                  <Camera className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <div>
-                <p className="font-semibold text-secondary-900 text-lg">{user?.name}</p>
-                <div className="flex items-center space-x-1 text-sm text-secondary-500 mt-0.5">
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>{user?.email}</span>
+                <div>
+                  <p className="font-semibold text-secondary-900 text-lg">{user?.name}</p>
+                  <div className="flex items-center space-x-1 text-sm text-secondary-500 mt-0.5">
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>{user?.email}</span>
+                  </div>
+                  <p className="text-xs text-secondary-400 capitalize mt-0.5">{user?.role} · {user?.school?.name || 'No school'}</p>
                 </div>
-                <p className="text-xs text-secondary-400 capitalize mt-0.5">{user?.role} · {user?.school?.name || 'No school'}</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { label: 'Full Name', value: profile.name },
+                  { label: 'Email', value: user?.email },
+                  { label: 'Phone', value: profile.phone || '-' },
+                  { label: 'Date of Birth', value: profile.date_of_birth || '-' },
+                  { label: 'Nationality', value: profile.nationality || '-' },
+                  { label: 'Country', value: profile.country || '-' },
+                  { label: 'City', value: profile.city || '-' },
+                  { label: 'Address', value: profile.address || '-' },
+                ].map(({ label, value }) => (
+                  <div key={label} className="py-2">
+                    <p className="text-xs text-secondary-400 font-medium uppercase tracking-wider">{label}</p>
+                    <p className="text-sm font-medium text-secondary-900 mt-0.5">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button type="button" onClick={() => setIsEditing(true)}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Full Name" type="text" value={profile.name}
-                onChange={(e) => setProfile({ ...profile, name: e.target.value })} required
-                placeholder="Enter your full name" />
-              <Input label="Email" type="email" value={user?.email || ''} disabled
-                placeholder="Email cannot be changed" />
-              <PhoneInput apiPrefix="/api" label="Phone" value={profile.phone}
-                onChange={v => setProfile({ ...profile, phone: v })} />
-              <Input label="Date of Birth" type="date" value={profile.date_of_birth}
-                onChange={(e) => setProfile({ ...profile, date_of_birth: e.target.value })} icon={Cake} />
-            </div>
-
-            <LocationFields apiPrefix="/api" values={{ country: profile.country, city: profile.city, nationality: profile.nationality }}
-              onChange={(k, v) => setProfile({ ...profile, [k]: v })} />
-
-            <div>
-              <label className="label">Address</label>
-              <div className="relative">
-                <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-secondary-400" />
-                <textarea className="input pl-10" rows={2} value={profile.address}
-                  onChange={(e) => setProfile({ ...profile, address: e.target.value })}
-                  placeholder="Enter your address" />
+          ) : (
+            <form onSubmit={(e) => { e.preventDefault(); setConfirmAction('profile') }} className="space-y-6">
+              <div className="flex items-center space-x-5 pb-6 border-b border-secondary-100">
+                <div className="relative group">
+                  <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-sm overflow-hidden">
+                    {profile.profile_image ? (
+                      <img src={profile.profile_image} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-2xl font-bold text-white">{getInitials(profile.name)}</span>
+                    )}
+                  </div>
+                  <button type="button" onClick={() => {
+                    const url = window.prompt('Enter image URL:')
+                    if (url) setProfile({ ...profile, profile_image: url })
+                  }}
+                    className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full flex items-center justify-center
+                             shadow-md border border-secondary-200 text-secondary-600 hover:text-primary-600
+                             hover:border-primary-300 transition-all opacity-0 group-hover:opacity-100">
+                    <Camera className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div>
+                  <p className="font-semibold text-secondary-900 text-lg">{user?.name}</p>
+                  <div className="flex items-center space-x-1 text-sm text-secondary-500 mt-0.5">
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>{user?.email}</span>
+                  </div>
+                  <p className="text-xs text-secondary-400 capitalize mt-0.5">{user?.role} · {user?.school?.name || 'No school'}</p>
+                </div>
               </div>
-            </div>
 
-            <div className="flex justify-end pt-2">
-              <Button type="submit" disabled={saving}>
-                <Save className="w-4 h-4 mr-2" />
-                {saving ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </div>
-          </form>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input label="Full Name" type="text" value={profile.name}
+                  onChange={(e) => setProfile({ ...profile, name: e.target.value })} required
+                  placeholder="Enter your full name" />
+                <Input label="Email" type="email" value={user?.email || ''} disabled
+                  placeholder="Email cannot be changed" />
+                <PhoneInput apiPrefix="/api" label="Phone" value={profile.phone}
+                  onChange={v => setProfile({ ...profile, phone: v })} />
+                <Input label="Date of Birth" type="date" value={profile.date_of_birth}
+                  onChange={(e) => setProfile({ ...profile, date_of_birth: e.target.value })} icon={Cake} />
+              </div>
+
+              <LocationFields apiPrefix="/api" values={{ country: profile.country, city: profile.city, nationality: profile.nationality }}
+                onChange={(k, v) => setProfile({ ...profile, [k]: v })} />
+
+              <div>
+                <label className="label">Address</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-secondary-400" />
+                  <textarea className="input pl-10" rows={2} value={profile.address}
+                    onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+                    placeholder="Enter your address" />
+                </div>
+              </div>
+
+              <div className="flex space-x-3 justify-end pt-2">
+                <Button type="submit" disabled={saving}>
+                  <Save className="w-4 h-4 mr-2" />
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </Button>
+                <Button type="button" variant="secondary" onClick={() => setIsEditing(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          )}
         </Card>
       )}
 
