@@ -14,7 +14,7 @@ class Fee extends Model
         'school_id', 'student_id', 'type', 'fee_type', 'amount', 'paid_amount',
         'due_date', 'paid_date', 'status', 'payment_method', 'transaction_id', 'remarks',
         'approval_status', 'reviewed_by_ah', 'reviewed_at_ah', 'ah_notes',
-        'approved_by_hos', 'approved_at_hos', 'hos_notes',
+        'approved_by_hos', 'approved_at_hos', 'hos_notes', 'created_by',
     ];
 
     protected $casts = [
@@ -39,6 +39,11 @@ class Fee extends Model
     public function approvedByHos()
     {
         return $this->belongsTo(User::class, 'approved_by_hos');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function getRemainingAmountAttribute()
