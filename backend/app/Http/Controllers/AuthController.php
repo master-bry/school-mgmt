@@ -115,9 +115,16 @@ class AuthController extends Controller
             'address' => 'nullable|string|max:500',
             'date_of_birth' => 'nullable|date',
             'profile_image' => 'nullable|string|max:2048',
+            'nationality' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
+            'gender' => 'nullable|string|max:20',
+            'national_id' => 'nullable|string|max:100',
+            'religion' => 'nullable|string|max:100',
+            'blood_group' => 'nullable|string|max:10',
         ]);
 
-        $user->update($request->only('name', 'phone', 'address', 'date_of_birth', 'profile_image'));
+        $user->update($request->only('name', 'phone', 'address', 'date_of_birth', 'profile_image', 'nationality', 'country', 'city', 'gender', 'national_id', 'religion', 'blood_group'));
 
         return response()->json([
             'message' => 'Profile updated successfully',

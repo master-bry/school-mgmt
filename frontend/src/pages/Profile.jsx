@@ -45,6 +45,19 @@ const Profile = () => {
     try {
       const res = await axios.put('/api/profile', profile)
       showMessage(res.data.message)
+      const saved = res.data.user
+      if (saved) {
+        setProfile({
+          name: saved.name || '',
+          phone: saved.phone || '',
+          address: saved.address || '',
+          country: saved.country || '',
+          city: saved.city || '',
+          nationality: saved.nationality || '',
+          date_of_birth: saved.date_of_birth || '',
+          profile_image: saved.profile_image || '',
+        })
+      }
       setIsEditing(false)
     } catch (err) {
       showMessage(err.response?.data?.message || 'Failed to update profile', 'error')
