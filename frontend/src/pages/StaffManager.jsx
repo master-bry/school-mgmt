@@ -6,6 +6,8 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import { Users, Search, Plus, X, AlertCircle, CheckCircle, GraduationCap, BadgeCheck, Trash2, Edit, Eye, BookOpen, Wallet, FileText, User, ShieldAlert } from 'lucide-react'
 import axios from 'axios'
 import { required, email, phone, number, validateForm } from '../lib/validation'
+import LocationFields from '../components/LocationFields'
+import PhoneInput from '../components/PhoneInput'
 
 const STAFF_ROLES = ['teacher', 'academician', 'cashier', 'secretary']
 const EMPLOYMENT_TYPES = ['full-time', 'part-time', 'contract', 'intern']
@@ -30,7 +32,7 @@ const validateRequired = (v) => v?.trim().length > 0
 const AddStaffModal = ({ apiPrefix, onClose, onSaved }) => {
   const [form, setForm] = useState({
     role: 'teacher', name: '', email: '', password: '', phone: '', address: '',
-    gender: '', national_id: '', religion: '', nationality: '', blood_group: '',
+    gender: '', national_id: '', religion: '', nationality: '', country: '', city: '', blood_group: '',
     marital_status: '', employee_code: '', date_of_birth: '',
     employment_type: '', department: '', qualification: '', years_experience: '', previous_employer: '', date_joined: '',
     emergency_contact: '', emergency_phone: '', emergency_relationship: '',
@@ -118,8 +120,7 @@ const AddStaffModal = ({ apiPrefix, onClose, onSaved }) => {
               {errors.password && <p className="text-xs text-red-500 mt-0.5">{errors.password}</p>}
             </div>
             <div>
-              <Input label="Phone" value={form.phone} onChange={e => update('phone', e.target.value)} />
-              {errors.phone && <p className="text-xs text-red-500 mt-0.5">{errors.phone}</p>}
+              <PhoneInput apiPrefix={apiPrefix} label="Phone" value={form.phone} onChange={v => update('phone', v)} error={errors.phone} />
             </div>
             <Input label="Date of Birth" type="date" value={form.date_of_birth} onChange={e => update('date_of_birth', e.target.value)} />
           </div>
@@ -146,8 +147,8 @@ const AddStaffModal = ({ apiPrefix, onClose, onSaved }) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input label="Religion" value={form.religion} onChange={e => update('religion', e.target.value)} />
-            <Input label="Nationality" value={form.nationality} onChange={e => update('nationality', e.target.value)} />
           </div>
+          <LocationFields apiPrefix={apiPrefix} values={{ country: form.country, city: form.city, nationality: form.nationality }} onChange={(k, v) => update(k, v)} />
           <Input label="Address" value={form.address} onChange={e => update('address', e.target.value)} />
           <div className="grid grid-cols-3 gap-4">
             <div>
@@ -211,7 +212,7 @@ const EditStaffModal = ({ apiPrefix, staff, onClose, onSaved }) => {
     name: staff.name || '', email: staff.email || '',
     phone: staff.phone || '', address: staff.address || '',
     gender: staff.gender || '', national_id: staff.national_id || '',
-    religion: staff.religion || '', nationality: staff.nationality || '', blood_group: staff.blood_group || '',
+    religion: staff.religion || '', nationality: staff.nationality || '', country: staff.country || '', city: staff.city || '', blood_group: staff.blood_group || '',
     marital_status: staff.marital_status || '', employee_code: staff.employee_code || '',
     date_of_birth: staff.date_of_birth ? staff.date_of_birth.substring(0, 10) : '',
     employment_type: d.employment_type || '', department: d.department || '',
@@ -284,8 +285,7 @@ const EditStaffModal = ({ apiPrefix, staff, onClose, onSaved }) => {
               {errors.email && <p className="text-xs text-red-500 mt-0.5">{errors.email}</p>}
             </div>
             <div>
-              <Input label="Phone" value={form.phone} onChange={e => update('phone', e.target.value)} />
-              {errors.phone && <p className="text-xs text-red-500 mt-0.5">{errors.phone}</p>}
+              <PhoneInput apiPrefix={apiPrefix} label="Phone" value={form.phone} onChange={v => update('phone', v)} error={errors.phone} />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
@@ -311,8 +311,8 @@ const EditStaffModal = ({ apiPrefix, staff, onClose, onSaved }) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input label="Religion" value={form.religion} onChange={e => update('religion', e.target.value)} />
-            <Input label="Nationality" value={form.nationality} onChange={e => update('nationality', e.target.value)} />
           </div>
+          <LocationFields apiPrefix={apiPrefix} values={{ country: form.country, city: form.city, nationality: form.nationality }} onChange={(k, v) => update(k, v)} />
           <div className="grid grid-cols-2 gap-4">
             <Input label="Address" value={form.address} onChange={e => update('address', e.target.value)} />
             <Input label="Date of Birth" type="date" value={form.date_of_birth} onChange={e => update('date_of_birth', e.target.value)} />
@@ -415,6 +415,8 @@ const ViewStaffModal = ({ staff, onClose }) => {
             <InfoRow label="Date of Birth" value={staff.date_of_birth} />
             <InfoRow label="Phone" value={staff.phone} />
             <InfoRow label="Address" value={staff.address} />
+            <InfoRow label="Country" value={staff.country} />
+            <InfoRow label="City" value={staff.city} />
           </div>
           <div>
             <h5 className="text-xs font-semibold uppercase text-secondary-400 mb-2">Employment</h5>

@@ -6,6 +6,8 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import { Users, Search, Plus, X, AlertCircle, CheckCircle, Edit, Eye, User, Download, Upload } from 'lucide-react'
 import axios from 'axios'
 import { required, email, phone, validateForm } from '../lib/validation'
+import LocationFields from '../components/LocationFields'
+import PhoneInput from '../components/PhoneInput'
 
 const STUDENT_STATUSES = ['active', 'inactive', 'suspended', 'probation', 'graduated', 'transferred', 'withdrawn', 'expelled', 'on_leave']
 
@@ -28,7 +30,7 @@ const validateRequired = (v) => v?.trim().length > 0
 const AddStudentModal = ({ apiPrefix, onClose, onSaved }) => {
   const [form, setForm] = useState({
     first_name: '', last_name: '', email: '', password: '', phone: '', address: '',
-    date_of_birth: '', gender: '', national_id: '', religion: '', nationality: '', blood_group: '',
+    date_of_birth: '', gender: '', national_id: '', religion: '', nationality: '', country: '', city: '', blood_group: '',
     admission_number: '', enrollment_date: '', previous_school: '', sport_house: '', transport_route: '',
     class_id: '', grade: '',
     parent_name: '', parent_phone: '', parent_email: '',
@@ -126,8 +128,7 @@ const AddStudentModal = ({ apiPrefix, onClose, onSaved }) => {
               {errors.password && <p className="text-xs text-red-500 mt-0.5">{errors.password}</p>}
             </div>
             <div>
-              <Input label="Phone" value={form.phone} onChange={e => update('phone', e.target.value)} />
-              {errors.phone && <p className="text-xs text-red-500 mt-0.5">{errors.phone}</p>}
+              <PhoneInput apiPrefix={apiPrefix} label="Phone" value={form.phone} onChange={v => update('phone', v)} error={errors.phone} />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
@@ -142,9 +143,8 @@ const AddStudentModal = ({ apiPrefix, onClose, onSaved }) => {
             <Input label="Date of Birth" type="date" value={form.date_of_birth} onChange={e => update('date_of_birth', e.target.value)} />
             <Input label="National ID" value={form.national_id} onChange={e => update('national_id', e.target.value)} />
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <Input label="Religion" value={form.religion} onChange={e => update('religion', e.target.value)} />
-            <Input label="Nationality" value={form.nationality} onChange={e => update('nationality', e.target.value)} />
             <div>
               <label className="label">Blood Group</label>
               <select className="input" value={form.blood_group} onChange={e => update('blood_group', e.target.value)}>
@@ -153,6 +153,7 @@ const AddStudentModal = ({ apiPrefix, onClose, onSaved }) => {
               </select>
             </div>
           </div>
+          <LocationFields apiPrefix={apiPrefix} values={{ country: form.country, city: form.city, nationality: form.nationality }} onChange={(k, v) => update(k, v)} />
           <Input label="Address" value={form.address} onChange={e => update('address', e.target.value)} />
           <div className="border-t pt-4">
             <p className="text-sm font-medium text-secondary-700 mb-3">Academic Details</p>
@@ -249,7 +250,7 @@ const EditStudentModal = ({ apiPrefix, student, onClose, onSaved }) => {
     email: student.email || '', phone: student.phone || '', address: student.address || '',
     date_of_birth: student.date_of_birth ? student.date_of_birth.substring(0, 10) : '',
     gender: student.gender || '', national_id: student.national_id || '',
-    religion: student.religion || '', nationality: student.nationality || '', blood_group: student.blood_group || '',
+    religion: student.religion || '', nationality: student.nationality || '', country: student.country || '', city: student.city || '', blood_group: student.blood_group || '',
     admission_number: student.admission_number || '', enrollment_date: student.enrollment_date ? student.enrollment_date.substring(0, 10) : '',
     previous_school: d.previous_school || student.previous_school || '',
     sport_house: d.sport_house || student.sport_house || '',
@@ -349,8 +350,7 @@ const EditStudentModal = ({ apiPrefix, student, onClose, onSaved }) => {
               {errors.email && <p className="text-xs text-red-500 mt-0.5">{errors.email}</p>}
             </div>
             <div>
-              <Input label="Phone" value={form.phone} onChange={e => update('phone', e.target.value)} />
-              {errors.phone && <p className="text-xs text-red-500 mt-0.5">{errors.phone}</p>}
+              <PhoneInput apiPrefix={apiPrefix} label="Phone" value={form.phone} onChange={v => update('phone', v)} error={errors.phone} />
             </div>
             <Input label="Date of Birth" type="date" value={form.date_of_birth} onChange={e => update('date_of_birth', e.target.value)} />
           </div>
@@ -374,8 +374,8 @@ const EditStudentModal = ({ apiPrefix, student, onClose, onSaved }) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input label="Religion" value={form.religion} onChange={e => update('religion', e.target.value)} />
-            <Input label="Nationality" value={form.nationality} onChange={e => update('nationality', e.target.value)} />
           </div>
+          <LocationFields apiPrefix={apiPrefix} values={{ country: form.country, city: form.city, nationality: form.nationality }} onChange={(k, v) => update(k, v)} />
           <Input label="Address" value={form.address} onChange={e => update('address', e.target.value)} />
           <div className="border-t pt-4">
             <p className="text-sm font-medium text-secondary-700 mb-3">Academic Details</p>
@@ -496,6 +496,8 @@ const ViewStudentModal = ({ student, onClose }) => {
             <InfoRow label="Date of Birth" value={student.date_of_birth} />
             <InfoRow label="Phone" value={student.phone} />
             <InfoRow label="Address" value={student.address} />
+            <InfoRow label="Country" value={student.country} />
+            <InfoRow label="City" value={student.city} />
             <InfoRow label="National ID" value={student.national_id} />
             <InfoRow label="Religion" value={student.religion} />
             <InfoRow label="Nationality" value={student.nationality} />
