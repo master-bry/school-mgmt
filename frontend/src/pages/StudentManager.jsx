@@ -3,7 +3,7 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import Input from '../components/Input'
 import ConfirmDialog from '../components/ConfirmDialog'
-import { Users, Search, Plus, X, AlertCircle, CheckCircle, Edit, Eye, User, Download, Upload } from 'lucide-react'
+import { Users, Search, Plus, X, AlertCircle, CheckCircle, Edit, Eye, User, Download, Upload, Trash2 } from 'lucide-react'
 import axios from 'axios'
 import { required, email, phone, validateForm } from '../lib/validation'
 import LocationFields from '../components/LocationFields'
@@ -618,6 +618,8 @@ const StudentManager = ({ apiPrefix, title, subtitle }) => {
   const [editTarget, setEditTarget] = useState(null)
   const [viewTarget, setViewTarget] = useState(null)
   const [statusTarget, setStatusTarget] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   const [toast, setToast] = useState(null)
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState(null)
@@ -683,6 +685,21 @@ const StudentManager = ({ apiPrefix, title, subtitle }) => {
       setStudents(Array.isArray(data) ? data : [])
     } catch {
       showToast('Failed to load students', 'error')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await axios.delete(`${apiPrefix}/students/${deleteTarget.id}`)
+      setDeleteTarget(null)
+      showToast('Student deleted')
+      fetchStudents()
+    } catch (e) {
+      showToast('Failed to delete student', 'error')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -792,6 +809,11 @@ const StudentManager = ({ apiPrefix, title, subtitle }) => {
                         className="p-1.5 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                         <Edit className="w-4 h-4" />
                       </button>
+                      <button onClick={() => setDeleteTarget(s)}
+                        className="p-1.5 text-secondary-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete student">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -815,6 +837,17 @@ const StudentManager = ({ apiPrefix, title, subtitle }) => {
           onSaved={() => { setStatusTarget(null); fetchStudents(); showToast('Status updated') }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => { if (!o) setDeleteTarget(null) }}
+        title="Delete Student"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel={deleting ? 'Deleting...' : 'Delete'}
+        variant="danger"
+        onConfirm={handleDelete}
+        loading={deleting}
+      />
     </div>
   )
 }

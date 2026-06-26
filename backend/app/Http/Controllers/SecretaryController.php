@@ -9,6 +9,7 @@ use App\Models\Exam;
 use App\Models\Timetable;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class SecretaryController extends Controller
 {
@@ -79,6 +80,34 @@ class SecretaryController extends Controller
         $data['school_id'] = $this->schoolId();
         $data['password'] = bcrypt($data['password']);
         return response()->json(User::create($data), 201);
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::where('school_id', $this->schoolId())->findOrFail($id);
+
+        $data = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|unique:users,email,' . $id,
+            'role' => 'sometimes|required|in:teacher,student,parent,academician,cashier,secretary',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'is_active' => 'sometimes|boolean',
+        ]);
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
+        return response()->json($user->fresh());
+    }
+
+    public function destroyUser($id)
+    {
+        $user = User::where('school_id', $this->schoolId())->findOrFail($id);
+        $user->delete();
+        return response()->json(null, 204);
     }
 
     public function timetables()

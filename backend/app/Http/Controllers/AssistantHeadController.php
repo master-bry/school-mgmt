@@ -354,6 +354,13 @@ class AssistantHeadController extends Controller
         return response()->json($student->fresh()->load('class', 'section', 'parent', 'studentDetail'));
     }
 
+    public function destroyStudent($id)
+    {
+        $student = User::where('school_id', $this->schoolId())->where('role', 'student')->findOrFail($id);
+        $student->delete();
+        return response()->json(null, 204);
+    }
+
     public function getClasses()
     {
         return response()->json(ClassModel::where('school_id', $this->schoolId())->get(['id', 'name', 'section', 'capacity']));

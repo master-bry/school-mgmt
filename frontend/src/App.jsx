@@ -56,6 +56,7 @@ import SuperAdminSchoolDetail from './pages/superAdmin/SchoolDetail'
 import SuperAdminSubscriptions from './pages/superAdmin/Subscriptions'
 import SuperAdminFeatureFlags from './pages/superAdmin/FeatureFlags'
 import SuperAdminAnalytics from './pages/superAdmin/Analytics'
+import SecretaryUsers from './pages/secretary/Users'
 
 function App() {
   return (
@@ -126,6 +127,7 @@ function App() {
               <Route path="super-admin/subscriptions" element={<SuperAdminSubscriptions />} />
               <Route path="super-admin/feature-flags" element={<SuperAdminFeatureFlags />} />
               <Route path="super-admin/analytics" element={<SuperAdminAnalytics />} />
+              <Route path="secretary/users" element={<SecretaryUsers />} />
             </Route>
             <Route path="/" element={<Navigate to="/login" replace />} />
           </Routes>

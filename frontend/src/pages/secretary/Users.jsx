@@ -1,31 +1,81 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { useNavigate } from 'react-router-dom'
-import Card from '../components/Card'
-import Button from '../components/Button'
-import Input from '../components/Input'
-import ConfirmDialog from '../components/ConfirmDialog'
-import { required, email, minLength, validateForm } from '../lib/validation'
-import { Users as UsersIcon, Edit2, Trash2, Plus, X, Search, AlertCircle, Eye, User } from 'lucide-react'
+import Card from '../../components/Card'
+import Button from '../../components/Button'
+import Input from '../../components/Input'
+import ConfirmDialog from '../../components/ConfirmDialog'
+import { Users, Search, Plus, X, AlertCircle, Edit2, Trash2, Eye, User } from 'lucide-react'
 import axios from 'axios'
-import PhoneInput from '../components/PhoneInput'
+import { required, email, minLength, validateForm } from '../../lib/validation'
 
 const roleColors = {
-  admin: 'bg-purple-100 text-purple-700',
   teacher: 'bg-blue-100 text-blue-700',
   student: 'bg-emerald-100 text-emerald-700',
   parent: 'bg-orange-100 text-orange-700',
   academician: 'bg-indigo-100 text-indigo-700',
   cashier: 'bg-amber-100 text-amber-700',
-  head_of_school: 'bg-rose-100 text-rose-700',
-  assistant_head: 'bg-cyan-100 text-cyan-700',
   secretary: 'bg-pink-100 text-pink-700',
+}
+
+const SECRETARY_ROLES = ['teacher', 'student', 'parent', 'academician', 'cashier', 'secretary']
+
+const ViewUserModal = ({ user, onClose }) => {
+  if (!user) return null
+
+  const InfoRow = ({ label, value }) => (
+    <div className="flex justify-between py-2 border-b border-secondary-100 last:border-0">
+      <span className="text-sm text-secondary-500">{label}</span>
+      <span className="text-sm font-medium text-secondary-900">{value || '-'}</span>
+    </div>
+  )
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-secondary-900">User Details</h3>
+          <button onClick={onClose} className="p-1 hover:bg-secondary-100 rounded"><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="flex items-center space-x-4 mb-6 p-4 bg-secondary-50 rounded-lg">
+          <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
+            roleColors[user.role] || 'bg-secondary-100 text-secondary-600'
+          }`}>
+            <User className="w-7 h-7" />
+          </div>
+          <div>
+            <h4 className="text-lg font-semibold text-secondary-900">{user.name}</h4>
+            <p className="text-sm text-secondary-500">{user.email}</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <span className={`inline-flex text-xs font-medium px-2.5 py-0.5 rounded-full ${
+                roleColors[user.role] || 'bg-secondary-100 text-secondary-700'
+              }`}>
+                {user.role}
+              </span>
+              <span className={`inline-flex items-center space-x-1.5 text-xs font-medium ${
+                user.is_active ? 'text-emerald-700' : 'text-red-700'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${user.is_active ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                <span>{user.is_active ? 'Active' : 'Inactive'}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <InfoRow label="User ID" value={user.id} />
+        <InfoRow label="Name" value={user.name} />
+        <InfoRow label="Email" value={user.email} />
+        <InfoRow label="Role" value={user.role} />
+        <InfoRow label="Phone" value={user.phone} />
+        <InfoRow label="Status" value={user.is_active ? 'Active' : 'Inactive'} />
+        {user.created_at && <InfoRow label="Created" value={new Date(user.created_at).toLocaleDateString()} />}
+      </Card>
+    </div>
+  )
 }
 
 const UserForm = ({ user: editingUser, onClose, onSaved }) => {
   const [formData, setFormData] = useState({
-    name: '', email: '', password: '', password_confirmation: '',
-    role: 'student', phone: '', address: '', date_of_birth: '',
+    name: '', email: '', password: '', role: 'student', phone: '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -37,11 +87,8 @@ const UserForm = ({ user: editingUser, onClose, onSaved }) => {
         name: editingUser.name,
         email: editingUser.email,
         password: '',
-        password_confirmation: '',
         role: editingUser.role,
         phone: editingUser.phone || '',
-        address: editingUser.address || '',
-        date_of_birth: editingUser.date_of_birth || '',
       })
     }
   }, [editingUser])
@@ -59,23 +106,18 @@ const UserForm = ({ user: editingUser, onClose, onSaved }) => {
       rules.password = { value: formData.password, rules: [minLength(8)] }
     }
     const { isValid, errors: validationErrors } = validateForm(rules)
-    const extra = {}
-    if (formData.password && formData.password !== formData.password_confirmation) {
-      extra.password_confirmation = 'Passwords do not match'
-    }
-    const all = { ...validationErrors, ...extra }
+    const all = { ...validationErrors }
     setErrors(all)
-    if (!isValid || Object.keys(extra).length > 0) return
+    if (!isValid) return
     setSaving(true)
     setError('')
     try {
       if (editingUser) {
         const payload = { ...formData }
         if (!payload.password) delete payload.password
-        delete payload.password_confirmation
-        await axios.put(`/api/admin/users/${editingUser.id}`, payload)
+        await axios.put(`/api/secretary/users/${editingUser.id}`, payload)
       } else {
-        await axios.post('/api/admin/users', formData)
+        await axios.post('/api/secretary/users', formData)
       }
       onSaved()
     } catch (err) {
@@ -141,40 +183,17 @@ const UserForm = ({ user: editingUser, onClose, onSaved }) => {
           </div>
 
           <div>
-            <Input label="Confirm Password *" type="password" value={formData.password_confirmation}
-              onChange={(e) => { setFormData({ ...formData, password_confirmation: e.target.value }); setErrors(p => ({...p, password_confirmation: undefined})) }}
-              required={!editingUser} placeholder="Confirm password" />
-            {errors.password_confirmation && <p className="text-xs text-red-500 mt-1">{errors.password_confirmation}</p>}
-          </div>
-
-          <div>
             <label className="label">Role</label>
             <select className="input" value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })} required>
-              <option value="admin">Admin</option>
-              <option value="teacher">Teacher</option>
-              <option value="student">Student</option>
-              <option value="parent">Parent</option>
-              <option value="academician">Academician</option>
-              <option value="cashier">Cashier</option>
-              <option value="head_of_school">Head of School</option>
-              <option value="assistant_head">Assistant Head</option>
-              <option value="secretary">Secretary</option>
+              {SECRETARY_ROLES.map(r => (
+                <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
+              ))}
             </select>
           </div>
 
-          <PhoneInput apiPrefix="/api" label="Phone" value={formData.phone}
-            onChange={v => setFormData({ ...formData, phone: v })} />
-
-          <div>
-            <label className="label">Address</label>
-            <textarea className="input" rows={2} value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              placeholder="Enter address" />
-          </div>
-
-          <Input label="Date of Birth" type="date" value={formData.date_of_birth}
-            onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })} />
+          <Input label="Phone" value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
 
           <div className="flex space-x-3 pt-2">
             <Button type="submit" disabled={saving} className="flex-1">
@@ -190,68 +209,7 @@ const UserForm = ({ user: editingUser, onClose, onSaved }) => {
   )
 }
 
-const ViewUserModal = ({ user, onClose }) => {
-  if (!user) return null
-
-  const InfoRow = ({ label, value }) => (
-    <div className="flex justify-between py-2 border-b border-secondary-100 last:border-0">
-      <span className="text-sm text-secondary-500">{label}</span>
-      <span className="text-sm font-medium text-secondary-900">{value || '-'}</span>
-    </div>
-  )
-
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-secondary-900">User Details</h3>
-          <button onClick={onClose} className="p-1 hover:bg-secondary-100 rounded"><X className="w-5 h-5" /></button>
-        </div>
-
-        <div className="flex items-center space-x-4 mb-6 p-4 bg-secondary-50 rounded-lg">
-          <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
-            roleColors[user.role] || 'bg-secondary-100 text-secondary-600'
-          }`}>
-            <User className="w-7 h-7" />
-          </div>
-          <div>
-            <h4 className="text-lg font-semibold text-secondary-900">{user.name}</h4>
-            <p className="text-sm text-secondary-500">{user.email}</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className={`inline-flex text-xs font-medium px-2.5 py-0.5 rounded-full ${
-                roleColors[user.role] || 'bg-secondary-100 text-secondary-700'
-              }`}>
-                {user.role}
-              </span>
-              <span className={`inline-flex items-center space-x-1.5 text-xs font-medium ${
-                user.is_active ? 'text-emerald-700' : 'text-red-700'
-              }`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${user.is_active ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                <span>{user.is_active ? 'Active' : 'Inactive'}</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <InfoRow label="User ID" value={user.id} />
-        <InfoRow label="Name" value={user.name} />
-        <InfoRow label="Email" value={user.email} />
-        <InfoRow label="Role" value={user.role} />
-        <InfoRow label="Phone" value={user.phone} />
-        <InfoRow label="Address" value={user.address} />
-        <InfoRow label="Date of Birth" value={user.date_of_birth} />
-        <InfoRow label="Status" value={user.is_active ? 'Active' : 'Inactive'} />
-        {user.class && <InfoRow label="Class" value={user.class.name} />}
-        {user.school && <InfoRow label="School" value={user.school.name} />}
-        {user.created_at && <InfoRow label="Created" value={new Date(user.created_at).toLocaleDateString()} />}
-      </Card>
-    </div>
-  )
-}
-
-const Users = () => {
-  const { user } = useAuth()
-  const navigate = useNavigate()
+const SecretaryUsers = () => {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -262,24 +220,16 @@ const Users = () => {
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
 
-  useEffect(() => {
-    if (!user) return
-    if (user.role !== 'admin') {
-      navigate('/dashboard')
-      return
-    }
-    fetchUsers()
-  }, [user])
+  useEffect(() => { fetchUsers() }, [])
 
   const fetchUsers = async () => {
     setLoading(true)
     setError('')
     try {
-      const response = await axios.get('/api/admin/users')
-      setUsers(response.data.data || response.data || [])
+      const response = await axios.get('/api/secretary/users')
+      setUsers(response.data?.data || response.data || [])
     } catch (err) {
-      setError('Failed to load users. Make sure you have admin access.')
-      console.error('Error fetching users:', err)
+      setError('Failed to load users')
     } finally {
       setLoading(false)
     }
@@ -289,25 +239,14 @@ const Users = () => {
     if (!deleteTarget) return
     setDeleting(true)
     try {
-      await axios.delete(`/api/admin/users/${deleteTarget.id}`)
+      await axios.delete(`/api/secretary/users/${deleteTarget.id}`)
       setDeleteTarget(null)
       fetchUsers()
     } catch (err) {
       setError('Failed to delete user')
-      console.error('Error deleting user:', err)
     } finally {
       setDeleting(false)
     }
-  }
-
-  const openCreate = () => {
-    setEditingUser(null)
-    setShowForm(true)
-  }
-
-  const openEdit = (u) => {
-    setEditingUser(u)
-    setShowForm(true)
   }
 
   const filteredUsers = users.filter(u =>
@@ -329,13 +268,13 @@ const Users = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2 text-sm text-secondary-500 mb-1">
-            <UsersIcon className="w-4 h-4" />
+            <Users className="w-4 h-4" />
             <span>User Management</span>
           </div>
           <h1 className="text-2xl font-bold text-secondary-900">Users</h1>
           <p className="text-secondary-500 mt-0.5">Manage all users in your school</p>
         </div>
-        <Button onClick={openCreate}>
+        <Button onClick={() => { setEditingUser(null); setShowForm(true) }}>
           <Plus className="w-4 h-4 mr-2" />
           Add User
         </Button>
@@ -406,7 +345,7 @@ const Users = () => {
                       title="View details">
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button onClick={() => openEdit(u)}
+                    <button onClick={() => { setEditingUser(u); setShowForm(true) }}
                       className="p-2 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors ml-1"
                       title="Edit user">
                       <Edit2 className="w-4 h-4" />
@@ -422,7 +361,7 @@ const Users = () => {
               {filteredUsers.length === 0 && (
                 <tr>
                   <td colSpan="5" className="py-12 text-center">
-                    <UsersIcon className="w-8 h-8 text-secondary-300 mx-auto mb-2" />
+                    <Users className="w-8 h-8 text-secondary-300 mx-auto mb-2" />
                     <p className="text-sm text-secondary-500">{searchTerm ? 'No users match your search' : 'No users found'}</p>
                   </td>
                 </tr>
@@ -456,4 +395,4 @@ const Users = () => {
   )
 }
 
-export default Users
+export default SecretaryUsers

@@ -197,6 +197,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/students/import', [HeadOfSchoolController::class, 'importStudents']);
         Route::put('/students/{id}/status', [HeadOfSchoolController::class, 'updateStudentStatus']);
         Route::put('/students/{id}', [HeadOfSchoolController::class, 'updateStudent']);
+        Route::delete('/students/{id}', [HeadOfSchoolController::class, 'destroyStudent']);
         // Unified staff management
         Route::get('/staff/list', [HeadOfSchoolController::class, 'getStaff']);
         Route::get('/staff/{id}', [HeadOfSchoolController::class, 'getStaffMember']);
@@ -242,6 +243,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/students/import', [AssistantHeadController::class, 'importStudents']);
         Route::put('/students/{id}/status', [AssistantHeadController::class, 'updateStudentStatus']);
         Route::put('/students/{id}', [AssistantHeadController::class, 'updateStudent']);
+        Route::delete('/students/{id}', [AssistantHeadController::class, 'destroyStudent']);
         // Unified approvals
         Route::get('/approvals', [AssistantHeadController::class, 'getApprovals']);
         Route::get('/approvals/categories', [AssistantHeadController::class, 'getApprovalCategories']);
@@ -286,6 +288,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/announcements', [SecretaryController::class, 'storeAnnouncement']);
         Route::get('/users', [SecretaryController::class, 'users']);
         Route::post('/users', [SecretaryController::class, 'storeUser']);
+        Route::put('/users/{id}', [SecretaryController::class, 'updateUser']);
+        Route::delete('/users/{id}', [SecretaryController::class, 'destroyUser']);
         Route::get('/timetables', [SecretaryController::class, 'timetables']);
         Route::get('/exams', [SecretaryController::class, 'exams']);
     });
