@@ -9,7 +9,8 @@
   }
 
   body {
-    @apply bg-secondary-50 text-secondary-900 font-poppins;
+    @apply bg-secondary-50 text-secondary-900;
+    font-family: 'Poppins', sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
