@@ -9,7 +9,7 @@
   }
 
   body {
-    @apply bg-secondary-50 text-secondary-900;
+    @apply bg-secondary-50 text-secondary-900 font-poppins;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
